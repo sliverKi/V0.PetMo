@@ -9,6 +9,7 @@ db.sqlite3-journal
 settings.ini
 my_settings.py
 data/
+tmp
 # Environments
 .env
 .venv

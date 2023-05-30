@@ -3,14 +3,14 @@ from pathlib import Path
 from datetime import timedelta
 import os
 import environ
-from .logger import CustomisedJSONFormatter
+from config.logger import CustomisedJSONFormatter
 
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-
+DEBUG=True
 SECRET_KEY = env("SECRET_KEY")
 
 
@@ -25,18 +25,11 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
     "http://127.0.0.1:8000",
-    "http://localhost:8000" ]
+    "http://localhost:8000",
+   
+    ]
 
-# CORS_ORIGIN_WHITELIST = ['http://127.0.0.1:3000','http://localhost:3000']
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 THIRD_PARTY_APPS=[
     # "rest_framework_simplejwt.token_blacklist",
@@ -48,10 +41,9 @@ THIRD_PARTY_APPS=[
     'corsheaders',
     'drf_yasg',
     'django_seed',
-    'django_elasticsearch_dsl',
-    'django_elasticsearch_dsl_drf',
+    'whitenoise.runserver_nostatic',
     'debug_toolbar',
-
+    
 ]
 CUSTOM_APPS=[
     "users.apps.UsersConfig",
@@ -63,7 +55,6 @@ CUSTOM_APPS=[
     "auths.apps.AuthsConfig",
     "bookmarks.apps.BookmarksConfig",
     "likes.apps.LikesConfig",
-    # "search.apps.SearchConfig"
 ]
 
 SYSTEM_APPS = [
@@ -81,11 +72,12 @@ SITE_ID = 1
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
 AUTHENTICATION_BACKENDS = [
-    # Needed to login by username in Django admin, regardless of `allauth`
+    
     "django.contrib.auth.backends.ModelBackend",
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
@@ -117,20 +109,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
+INTERNAL_IPS=[
+    '127.0.0.1',
+]
 REST_FRAMEWORK={
-    # 'DEFAULT_PERMISSION_CLASSES': (#api 접근시에 인증된 유저(헤더에 access-tocken을 포함하여 유효한 유저만이 접근이 가능하게 함)
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ),
     'DEFAULT_AUTHENTICATION_CLASSES':(
         # 'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -140,15 +128,6 @@ REST_FRAMEWORK={
         'rest_framework.pagination.PageNumberPagination',
         'PAGE_SIZE': 10,
 }
-
-ELASTICSEARCH_DSL = {
-    'default': {
-        "hosts": "localhost:9200"
-    }
-}
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -215,12 +194,15 @@ USE_TZ = True
 
 #by gunicorn
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'app', 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-#debug-toolbar
-INTERNAL_IPS=[
-    '127.0.0.1',
-]
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        "hosts": "localhost:9200"
+    }
+}
 
 MEDIA_ROOT = "uploads"
 
