@@ -1,20 +1,25 @@
 
+import os
 from pathlib import Path
 from datetime import timedelta
-import os
 import environ
 from config.logger import CustomisedJSONFormatter
+import dj_database_url
 
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-DEBUG=True
+
 SECRET_KEY = env("SECRET_KEY")
 
 
 ALLOWED_HOSTS = ["*"]
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -107,14 +112,28 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+DEBUG = 'RENDER' not in os.environ
 
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if DEBUG:
+    DATABASES = {
+        'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR/ 'db.sqlite3',
+            }
     }
-}
+else:
+     DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+        )
+                    
+    }
+     
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+       
 INTERNAL_IPS=[
     '127.0.0.1',
 ]
@@ -194,9 +213,6 @@ USE_TZ = True
 
 #by gunicorn
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 
 ELASTICSEARCH_DSL = {
     'default': {
