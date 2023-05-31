@@ -1,4 +1,6 @@
-
+#06.01
+#vscode에는 현재 베포 서버용 settings가 설정되어 있음
+#github애는 현재 개발 서버용 settings가 설정되어 있음
 import os
 from pathlib import Path
 from datetime import timedelta
@@ -112,9 +114,11 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-DEBUG = 'RENDER' not in os.environ
-
+#DEBUG = 'RENDER' not in os.environ-->서버 베포시 주석 해제 
+DEBUG=True
 if DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     DATABASES = {
         'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
