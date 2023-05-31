@@ -456,7 +456,11 @@ class PostCommentsDetail(APIView):
             raise PermissionDenied("삭제 권한이 없습니다.")
         comment.delete()
         return Response(status=status.HTTP_200_OK)
-    
+
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
 
 # class PostSearchView(APIView):
 #     serializer_class = PostListSerializers

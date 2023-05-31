@@ -11,6 +11,7 @@ urlpatterns=[
     path("comments/", views.Comments.as_view()), #[GET, POST, pagination]
     path("comments/<int:pk>", views.CommentDetail.as_view()),#[GET,PUT(댓글만 수정 가능),DELETE]
 
+    path("trigger_error", views.trigger_error.as_view())
    
 
 ]
