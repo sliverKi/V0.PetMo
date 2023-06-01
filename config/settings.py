@@ -9,6 +9,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from config.logger import CustomisedJSONFormatter
 import dj_database_url
+
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,7 +35,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
-   
+    "backend.petmo.monster",
+    #"front-address"
     ]
 
 
@@ -219,6 +221,7 @@ USE_TZ = True
 #by gunicorn
 STATIC_URL = '/static/'
 
+#elasticssearch
 ELASTICSEARCH_DSL = {
     'default': {
         "hosts": "localhost:9200"
@@ -241,14 +244,16 @@ KAKAO_API_KEY=env("KAKAO_API_KEY")
 #Cloudflare
 CF_TOKEN=env("CF_TOKEN")
 CF_ID=env("CF_ID")
+
+#Sentry -> log monitoring
 if not DEBUG:#개발 환경에서는 작동 안함
+    SESSION_COOKIE_DOMAIN=".petmo.monster"
+    CSRF_COOKIE_DOMAIN=".petmo.monster"
     sentry_sdk.init(
         dsn="https://e7a874aa712847f1a0659474973d022e@o4505280354975744.ingest.sentry.io/4505280371032064",
         integrations=[
             DjangoIntegration(),
         ],
-
         traces_sample_rate=1.0,
-
         send_default_pii=True
     )
