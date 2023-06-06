@@ -346,7 +346,7 @@ class PostDetail(APIView):#게시글의 자세한 정보(+댓글 포함)
         if request.user!=post.user:
             raise PermissionDenied("게시글 삭제 권한이 없습니다.")
         post.delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
 class PostComments(APIView, PaginaitionHandlerMixin ):#게시글에 등록 되어진 댓글, 대댓글
     pagination_class=CommentPagination

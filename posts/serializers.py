@@ -282,19 +282,19 @@ class PostDetailSerializers(ModelSerializer):#image 나열
             if isinstance(image_data, list):
                 total_image_count = existing_image_count + len(image_data)
                 if total_image_count > 5:
-                    raise serializers.ValidationError("이미지는 최대 5장 까지 업로드 할 수 있습니다.")
+                    raise ParseError("이미지는 최대 5장 까지 업로드 할 수 있습니다.")
                 
                 instance.Image.clear()
                 
                 for img in image_data:
                     Image.objects.create(post=instance, img_path=img.get("img_path"))
             else:
-                raise serializers.ValidationError("image 잘못된 형식 입니다.")
+                raise ValidationError("image 잘못된 형식 입니다.")
                    
         if category_data:
             category_instance = Category.objects.filter(categoryType=category_data.get("categoryType")).first()
             if not category_instance:
-                raise serializers.ValidationError({"category": "Invalid category"})
+                raise ParseError({"category": "Invalid category"})
             instance.categoryType = category_instance
 
         # Update the remaining fields
