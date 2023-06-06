@@ -65,7 +65,7 @@ class MyInfo(APIView):
         serializer = PrivateUserSerializers(user)
         return Response(serializer.data, status=status.HTTP_200_OK) 
 
-    
+
     def put(self, request):
         user = request.user
         serializer = PrivateUserSerializers(
@@ -217,6 +217,7 @@ class getIP(APIView):#ip기반 현위치 탐색
    
 class getQuery(APIView):#검색어 입력 기반 동네 검색
     # permission_classes=[IsAuthenticated]#인가된 사용자만 허용
+ 
     def get(self, request):
         
         # 1. 검색어 예외 처리 할 것 
@@ -271,19 +272,20 @@ class getPets(APIView): #유저의 동물 등록
                 user=request.user,
                 pets=request.data.get("pets"),
             )            
-            serializer=EnrollPetSerailzer(animal)
+            serializer=UserSerializers(animal)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class Quit(APIView):
-
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         user=request.user
-        try:
+        print(user)
+        if user.is_authenticated:
             serializer=UserSerializers(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except:
-            return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"message":"이미 탈퇴한 회원입니다. 회원가입후에 이용해 주세요."}, status=status.HTTP_404_NOT_FOUND)
     
    
     #input data {"password":"xxx"}
