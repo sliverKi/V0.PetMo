@@ -19,7 +19,7 @@ from .serializers import (
     
     SimpleUserSerializer, PrivateUserSerializers, 
     AddressSerializer, AddressSerializers, UserSerializers,
-    EnrollPetSerailzer
+    EnrollPetSerailzer, TinyUserSerializers
     )
 from pets.models import Pet
 from posts.models import Post, Comment
@@ -27,85 +27,27 @@ from posts.serializers import PostListSerializer,PostListSerializers,PostSeriali
 
 #start images: docker run -p 8000:8000 petmo-back
 class StaticInfo(APIView):
-
-    # permission_classes=[IsAuthenticated]
-
-    @swagger_auto_schema(
-        operation_summary="요청 유저의 정적 정보 조회",
-        response={
-            200: openapi.Response(
-                description="Seccuess Response",
-                schema=UserSerializers(),
-            ),
-        },
-        request_body=None,
-    )
-
     def get(self, request):
         user=request.user
         serializer=UserSerializers(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class MyPost(APIView):  
-    @swagger_auto_schema(
-        operation_summary="현재 로그인한 사용자의 작성 게시글 정보",
-        response={
-            200: openapi.Response(
-                description="Success Reponse",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "user":SimpleUserSerializer,
-                        "user_posts":openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=PostListSerializer,
-                        ),
-                    },
-                ),
-            ),
-        },
-    )
     def get(self, request):
         user = request.user
 
         user_posts=Post.objects.filter(user=user)#user가 작성한 게시글
-        user_post_serialized = PostListSerializer(user_posts, many=True).data
+        user_post_serialized = PostListSerializers(user_posts, many=True).data
         
         response_data = {
-            "user": SimpleUserSerializer(user).data,
+            # "user": TinyUserSerializers(user).data,
             "user_posts": user_post_serialized,
         }
         return Response(response_data, status=status.HTTP_200_OK)
-class MyComment(APIView):
-    @swagger_auto_schema(
-        operation_summary="현재 로그인한 사용자의 작성 댓글 정보",
-        response={
-            200: openapi.Response(
-                description="Success Response",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "user_comments": openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=openapi.Schema(
-                                type=openapi.TYPE_OBJECT,
-                                properties={
-                                    "id": openapi.Schema(type=openapi.TYPE_INTEGER),
-                                    "content": openapi.Schema(type=openapi.TYPE_STRING),
-                                    "created_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
-                                    "updated_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
-                                    "post": PostSerializers(),
-                                },
-                            ),
-                        ),
-                    },
-                ),
-            ),
-        },
-    )
+class MyComment(APIView):    
     def get(self, request):
         user=request.user
-        user_comments=Comment.objects.filter(user=user).select_related('post')#user가 작성한 댓글 
+        user_comments=Comment.objects.filter(user=user, parent_comment=None).select_related('post')#user가 작성한 댓글 
         
         user_comments_serialized=[]
         for comment in user_comments:
@@ -118,32 +60,12 @@ class MyComment(APIView):
         }
         return Response(response_data, status=status.HTTP_200_OK)
 class MyInfo(APIView):
-    @swagger_auto_schema(
-        operation_summary="MyProfile 조회 ",
-        response={
-            200: openapi.Response(
-                description="Success Response",
-                schema=PrivateUserSerializers(),
-            ),
-        }
-    )
     def get(self, request):
         user=request.user
         serializer = PrivateUserSerializers(user)
         return Response(serializer.data, status=status.HTTP_200_OK) 
 
-   
-    @swagger_auto_schema(
-        operation_summary="MyProfile 수정",
-        responses={
-            202: openapi.Response(
-                description="Success Accepted.",
-                schema=PrivateUserSerializers(),
-            ),
-            400: "Bad Request",
-        },
-        request_body=PrivateUserSerializers(),
-        )
+    
     def put(self, request):
         user = request.user
         serializer = PrivateUserSerializers(
@@ -177,27 +99,6 @@ class getAddress(APIView):
         except User.DoesNotExist:
             raise NotFound     
     
-    @swagger_auto_schema(
-        operation_summary="현재 로그인한 사용자의 주소 조회",
-        response={
-            200: openapi.Response(
-                description="Success Response",
-                schema=AddressSerializer(),
-            ),
-            404: openapi.Response(
-                description="User has not set their address yet",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "message": openapi.Schema(
-                            type=openapi.TYPE_STRING,
-                            description="Error message",
-                        ),
-                    },
-                ),
-            ),
-        },
-    )
     def get(self, request):#현재 로그인한 user의 주소를 조회 
         user=request.user
         print(user)
@@ -209,38 +110,6 @@ class getAddress(APIView):
         else:
             return Response({"message":"사용자가 아직 내동네 설정을 하지 않았습니다."}, status=status.HTTP_404_NOT_FOUND)
     
-    @swagger_auto_schema(
-        operation_summary="현재 로그인한 사용자의 주소 설정",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'addressName': openapi.Schema(type=openapi.TYPE_STRING, description='The name of the address'),
-                'regionDepth1': openapi.Schema(type=openapi.TYPE_STRING, description='The first level region depth (e.g. province)'),
-                'regionDepth2': openapi.Schema(type=openapi.TYPE_STRING, description='The second level region depth (e.g. city)'),
-                'regionDepth3': openapi.Schema(type=openapi.TYPE_STRING, description='The third level region depth (e.g. district)'),
-            },
-            required=['addressName', 'regionDepth1', 'regionDepth2'],
-        ),
-        response={
-            201: openapi.Response(
-                description="Address created successfully",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='The unique ID of the address'),
-                        'user': openapi.Schema(type=openapi.TYPE_OBJECT, description='The user who created the address'),
-                        'addressName': openapi.Schema(type=openapi.TYPE_STRING, description='The name of the address'),
-                        'regionDepth1': openapi.Schema(type=openapi.TYPE_STRING, description='The first level region depth (e.g. province)'),
-                        'regionDepth2': openapi.Schema(type=openapi.TYPE_STRING, description='The second level region depth (e.g. city)'),
-                        'regionDepth3': openapi.Schema(type=openapi.TYPE_STRING, description='The third level region depth (e.g. district)'),
-                    },
-                    required=['id', 'user', 'addressName', 'regionDepth1', 'regionDepth2']
-                ),
-            ),
-            400: openapi.Response(description="Bad Request"),
-            500: openapi.Response(description="Internal Server Error"),
-        }
-    )
 
     def post(self, request):#주소 등록 
         print("post Start")
@@ -261,25 +130,7 @@ class getAddress(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": "Failed to Save Address Data."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @swagger_auto_schema(
-        operation_summary="현재 로그인한 사용자의 주소 재설정",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'addressName': openapi.Schema(type=openapi.TYPE_STRING),
-                'regionDepth1': openapi.Schema(type=openapi.TYPE_STRING),
-                'regionDepth2': openapi.Schema(type=openapi.TYPE_STRING),
-                'regionDepth3': openapi.Schema(type=openapi.TYPE_STRING),
-            }
-        ),
-        response={
-            202: AddressSerializer(),
-            400: "Bad Request",
-            404: "Not Found",
-        },
-        operation_id="update_address",
-    )    
+  
     def put(self, request):
         user=request.user
         
@@ -298,17 +149,7 @@ class getAddress(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @swagger_auto_schema(
-        operation_summary="현재 로그인한 사용자의 동네 설정 초기화",
-        operation_description="Delete the user's address",
-        response={
-            200: "Success",
-            401: "Authentication credentials were not provided",
-            403: "Permission Denied",
-            404: "Not Found",
-        },
-        operation_id="delete_my_address",
-    )    
+   
     def delete(self, request):
         user=request.user
         print("user", user)
@@ -328,27 +169,8 @@ class getAddress(APIView):
        
 
 class getIP(APIView):#ip기반 현위치 탐색
-    permission_classes=[IsAuthenticated]#인가된 사용자만 허용
-    @swagger_auto_schema(
-        operation_summary="ip기반 현위치 탐색",
-        response={
-            200: openapi.Response(description='Success', schema=openapi.Schema(
-                type='array',
-                items=openapi.Schema(
-                    type='object',
-                    properties={
-                        'address_name': openapi.Schema(type='string'),
-                        'region_1depth_name': openapi.Schema(type='string'),
-                        'region_2depth_name': openapi.Schema(type='string'),
-                        'region_3depth_name': openapi.Schema(type='string')
-                    }
-                )
-            )),
-            400: openapi.Response(description='Bad Request'),
-            401: openapi.Response(description='Authentication Failed'),
-            500: openapi.Response(description='Internal Server Error')
-        }
-    )
+    # permission_classes=[IsAuthenticated]#인가된 사용자만 허용
+
     def get(self, request):
         try:
             client_ip_address  = request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')#현재 접속 ip
@@ -394,63 +216,7 @@ class getIP(APIView):#ip기반 현위치 탐색
             return Response({"error": "Failed to Load open API data."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
    
 class getQuery(APIView):#검색어 입력 기반 동네 검색
-    permission_classes=[IsAuthenticated]#인가된 사용자만 허용
-    @swagger_auto_schema(
-        operation_summary="Search address using Kakao API",
-        operation_description="Search for an address using Kakao's address search API",
-        manual_parameters=[
-            openapi.Parameter(
-                name='q',
-                in_=openapi.IN_QUERY,
-                description='The search query',
-                type=openapi.TYPE_STRING,
-                required=True,
-            ),
-        ],
-        responses={
-            200: openapi.Response(
-                description='Address search results',
-                examples={
-                    'application/json': {
-                        'meta': {'total_count': 1},
-                        'documents': [
-                            {
-                                'address': {
-                                    'address_name': '서울 강남구 역삼동 698-17',
-                                    'b_code': '1168010900',
-                                    'h_code': '1168060000',
-                                    'main_address_no': '698',
-                                    'mountain_yn': 'N',
-                                    'region_1depth_name': '서울',
-                                    'region_2depth_name': '강남구',
-                                    'region_3depth_h_name': '역삼1동',
-                                    'region_3depth_name': '역삼동',
-                                    'sub_address_no': '17',
-                                    'x': '127.03185624535',
-                                    'y': '37.499853298702'
-                                },
-                                'address_name': '서울 강남구 역삼동 698-17',
-                                'address_type': 'REGION_ADDR',
-                                'road_address': None
-                            }
-                        ]
-                    }
-                }
-            ),
-            400: openapi.Response(
-                description='Bad request',
-                examples={
-                    'application/json': {'error': '검색할 키워드를 입력해 주세요.'}
-                }
-            ),
-            500: openapi.Response(
-                description='Internal server error',
-                examples={
-                    'application/json': {'error': 'Failed to Load open API data.'}
-                }
-            ),
-        },
-    )
+    # permission_classes=[IsAuthenticated]#인가된 사용자만 허용
     def get(self, request):
         
         # 1. 검색어 예외 처리 할 것 
@@ -478,17 +244,6 @@ class getQuery(APIView):#검색어 입력 기반 동네 검색
         return Response(datas, status=status.HTTP_200_OK)
 
 class getPets(APIView): #유저의 동물 등록
-    @swagger_auto_schema(
-        operation_summary="유저의 동물 정보 조회",
-        responses={
-            200: openapi.Response(
-                "Success Response", 
-                UserSerializers(),
-                ),
-            401: "인증되지 않은 사용자입니다.",
-            404: "유저 정보가 존재하지 않습니다."
-        }
-    )
     def get(self, request):
         user=request.user
         serializer = UserSerializers(user)
@@ -502,15 +257,7 @@ class getPets(APIView): #유저의 동물 등록
     #    {"animalTypes": "고양이"}
     #   ]
     # }
-    @swagger_auto_schema(
-        operation_summary="현재 로그인한 사용자의 동물 정보 등록",
-        operation_description="Registers the pets provided in the request body for the authenticated user.",
-        request_body=EnrollPetSerailzer,
-        responses={
-            200: EnrollPetSerailzer(many=False),
-            400: "Bad Request"
-        },
-    )
+ 
     def post(self, request):
         user=request.user
         
@@ -529,13 +276,7 @@ class getPets(APIView): #유저의 동물 등록
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class Quit(APIView):
-    @swagger_auto_schema(  
-        operation_summary="회원 탈퇴를 위한 사용자 정보 조회",
-        response={
-            200: UserSerializers,
-            404: "User not found",
-        },
-    )
+
     def get(self, request):
         user=request.user
         try:
@@ -546,26 +287,6 @@ class Quit(APIView):
     
    
     #input data {"password":"xxx"}
-    @swagger_auto_schema(
-        operation_summary="회원 탈퇴 요청",
-        request_body=openapi.Schema(#field를 새로 만듦
-            description='회원 탈퇴를 요청하는 사용자의 현재 비밀번호를 확인하여 사용자 확인',
-            type=openapi.TYPE_OBJECT,#객체 타입
-            properties={
-                'password': openapi.Schema(
-                type=openapi.TYPE_STRING, 
-                description='현재 비밀번호'
-                ),
-            },
-            required=['password'],
-        ),
-        responses={
-            204: 'Success Quit',
-            400: '잘못된 요청',
-            401: '권한 없음',
-            404: '유저를 찾을 수 없음',
-        },
-    )
     def post(self, request):
         user=request.user
         password=request.data.get("password")

@@ -187,7 +187,7 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
     def get_commentCount(self, obj):
         return obj.commentCount
     
-class PostListSerializer(ModelSerializer):#MY/Post에서 이용
+class PostListSerializer(ModelSerializer):#MY/Post에서 이용(일단 보류.)
     user=TinyUserSerializers(read_only=True)
     boardAnimalTypes=PetsSerializers(many=True)
     categoryType=BoardSerializers()

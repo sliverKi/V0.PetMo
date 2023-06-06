@@ -136,7 +136,7 @@ if not DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-       
+#debug tool-bar        
 INTERNAL_IPS=[
     '127.0.0.1',
 ]
