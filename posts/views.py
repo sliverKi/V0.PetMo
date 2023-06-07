@@ -377,8 +377,8 @@ class PostComments(APIView, PaginaitionHandlerMixin ):#게시글에 등록 되�
         content=request.data.get("content")
         post=self.get_object(pk=pk)
         print("test: ", post)
-        if not content:
-            return Response({"error":"작성하실 내용을 입력해 주세요"}, status=status.HTTP_400_BAD_REQUEST) 
+        if not content or content.strip()=="":
+            return Response({"error":"작성하실 내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST) 
         
         parent_comment_id = request.data.get("parent_comment", None)#부모댓글 정보 #부모댓글 정보가 전달 되지 않을 경우, None할당(=댓글)
         print("parent_comment_id: ",parent_comment_id)
