@@ -434,9 +434,12 @@ class PostCommentsDetail(APIView):
         
     def put(self, request, pk, comment_pk):#댓글 or 대댓글 수정
         comment=self.get_comment(comment_pk)
-        
+        content=request.data.get("content")
         if request.user !=comment.user:
             raise PermissionDenied("수정 권한이 없습니다.")
+        
+        if not content or content.strip()=="":
+            return Response({"error":"수정하실 내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = ReplySerializers(
             comment,
@@ -455,7 +458,7 @@ class PostCommentsDetail(APIView):
         if request.user!=comment.user:
             raise PermissionDenied("삭제 권한이 없습니다.")
         comment.delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 def trigger_error(request):

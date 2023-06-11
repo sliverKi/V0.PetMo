@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.http import JsonResponse
+from django.utils import timezone
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect
@@ -26,7 +28,7 @@ class LogIn(APIView):
     def post(self, request, format=None):
         email=request.data.get('email')
         password=request.data.get('password')
-        
+        res=Response()
         try:
             user = User.objects.get(email=email)
             
@@ -38,6 +40,7 @@ class LogIn(APIView):
         
         if user.check_password(password):
             login(request, user)
+            user.last_login = timezone.now()
             serializer=UserSerializers(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({"error":"이메일 또는 비밀번호를 확인해주세요."}, status=status.HTTP_400_BAD_REQUEST)
@@ -46,7 +49,9 @@ class LogOut(APIView):
     permission_classes=[IsAuthenticated]#전부 다 인증된 사용자에게만 권한 허용
 
     def post(self, request):
-        logout(request)
+        res=Response()
+        res.delete_cookie("sessionid")
+        logout(request)        
         return Response({"success":"Success logout! :) See you!"}, status=status.HTTP_200_OK)
     
       
