@@ -465,66 +465,9 @@ def trigger_error(request):
     division_by_zero = 1 / 0
 
 
-# class PostSearchView(APIView):
-#     serializer_class = PostListSerializers
-    
-#     def get(self, request):
-#         """try:
-#             finalquery=[]
-#             q=request.GET.get('search', None)
-#             categoryType=request.GET.get('categoryType', None)
-#             content=request.GET.get('content',None)
 
-#             if q is not None and not q=='':
-#                 finalquery.append(QQ(
-#                     'multi_match',
-#                     query=q,
-#                     fields=[
-#                         'content',
-#                     ],
-#                     fuzziness='auto'))
-#             if categoryType is not None and not categoryType=='':
-#                 finalquery.append(QQ(
-#                     categoryType__categoryType=categoryType
-#                 ))    
-
-#             if len(finalquery)>0:
-#                 response = self.document_class.search().query(
-#                     reduce(operator.iand, finalquery)).to_queryset()
-
-#             results = self.paginate_queryset(response, request, view=self)
-#             serializer = self.serializer_class(results, many=True)
-#             return self.get_paginated_response(serializer.data)
-
-#         except Exception as e:
-#             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-#         """
-#         query = request.GET.get('query', '')
-#         # Elasticsearch 검색 쿼리 작성
-#         search_query = Search(index='posts').query('match', content=query)
-#         # Elasticsearch에서 검색 실행
-#         response = search_query.execute()
-#         # 검색 결과를 PostDocument의 시리얼라이저를 사용하여 직렬화
-#         serializer = PostSerializers(response, many=True)
-#         # 직렬화된 결과를 API 응답으로 반환
-#         return Response(serializer.data)
                 
-# class PublishDocumentView(DocumentViewSet):
-#     document=PostDocument
-#     serializer_class=PostDocumentSerializer
 
-#     filter_backends=[
-#         FilteringFilterBackend,
-#         CompoundSearchFilterBackend
-#     ]
-
-#     search_fileds=('content', 'categoryType')
-#     multi_match_search_fields=('content', 'categoryType')
-#     fileds_fields={
-#         'content':'content',
-#         'categoryType':'categoryType'
-#     }
 
 
 

@@ -4,9 +4,9 @@ from . import views
 
 urlpatterns=[
     path("static-info", views.StaticInfo.as_view()),#사용자 정적 정보 조회
+    
     path("MY/Post", views.MyPost.as_view()), #user작성한 게시글 조회[GET]
-
-    # path("MY/Post/<int:pk>", views.MyPostDetail.as_view()), #게시글로 이동 해야 함 
+    path("MY/Post/<int:pk>", views.MyPostDetail.as_view()), #[get, put, delete] 필요 
     
     path("MY/Comment", views.MyComment.as_view()),#user작성한 댓글 조회[GET]
     # path("MY/Comment/<int:pk>", views.MyCommentDetail.as_view()), #댓글 수정 삭제 해야함

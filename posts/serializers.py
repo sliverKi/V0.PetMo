@@ -242,7 +242,7 @@ class PostDetailSerializers(ModelSerializer):#image 나열
             "bookmarkCheck",#북마크 토글
             "bookmarkCount",#북마크 수
         )
-    
+
     def get_likeCheck(self, data):
         request = self.context.get("request")
         if request:

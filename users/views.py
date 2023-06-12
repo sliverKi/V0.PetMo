@@ -23,7 +23,7 @@ from .serializers import (
     )
 from pets.models import Pet
 from posts.models import Post, Comment
-from posts.serializers import PostListSerializer,PostListSerializers,PostSerializers, CommentSerializers, ReplySerializers
+from posts.serializers import PostDetailSerializers,PostListSerializers, CommentSerializers, ReplySerializers
 
 #start images: docker run -p 8000:8000 petmo-back
 class StaticInfo(APIView):
@@ -44,6 +44,64 @@ class MyPost(APIView):
             "user_posts": user_post_serialized,
         }
         return Response(response_data, status=status.HTTP_200_OK)
+    
+class MyPostDetail(APIView):
+    def get_object(self,pk):
+        try:
+            return Post.objects.get(pk=pk)
+        except Post.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        post=self.get_object(pk)
+        post.viewCount+=1 # 조회수 카운트
+        post.save()
+        
+        serializer = PostDetailSerializers(
+            post,
+            context={"request":request},
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        post=self.get_object(pk=pk)
+
+        if post.user != request.user:
+            raise PermissionDenied
+        
+        serializer=PostDetailSerializers(
+            post, 
+            data=request.data,
+            partial=True
+        )
+        print("re: ", request.data)
+        if serializer.is_valid():
+            try:
+                post=serializer.save(
+                    category=request.data.get("categoryType"),
+                    boardAnimalTypes=request.data.get("boardAnimalTypes"),
+                    Image=request.data.get("Image")
+                )
+            except serializers.ValidationError as e: 
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                
+            post = serializer.save(
+                category=request.data.get("categoryType"),
+                boardAnimalTypes=request.data.get("boardAnimalTypes")
+                  )    
+            serializer=PostDetailSerializers(post)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request,pk):#게시글 삭제
+        post=self.get_object(pk)    
+        if request.user!=post.user:
+            raise PermissionDenied("게시글 삭제 권한이 없습니다.")
+        post.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class MyComment(APIView):    
     def get(self, request):
         user=request.user
