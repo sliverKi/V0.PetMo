@@ -88,7 +88,7 @@ class MyPostDetail(APIView):
             post = serializer.save(
                 category=request.data.get("categoryType"),
                 boardAnimalTypes=request.data.get("boardAnimalTypes")
-                  )    
+                )    
             serializer=PostDetailSerializers(post)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         else:
@@ -117,6 +117,47 @@ class MyComment(APIView):
             "user_comments": user_comments_serialized,
         }
         return Response(response_data, status=status.HTTP_200_OK)
+    
+class MyCommentDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            raise NotFound
+        
+    def get(self, request, pk):#게시글 삭제되면 댓글 자동 삭제 됌
+        comment=self.get_object(pk)
+
+        serializer=CommentSerializers(
+            comment,
+            context={"request":request},
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, pk):
+        comment=self.get_object(pk)
+        if comment.user !=request.user:
+            raise PermissionDenied
+        serializer= CommentSerializers(
+            comment, 
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            comment = serializer.save()
+            serializer=CommentSerializers(comment)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request, pk):
+        comment=self.get_object(pk)
+        if comment.user !=request.user:
+            raise PermissionDenied
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+            
 class MyInfo(APIView):
     def get(self, request):
         user=request.user
