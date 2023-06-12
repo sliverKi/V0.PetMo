@@ -124,7 +124,6 @@ class MyComment(APIView):
         page_number = request.GET.get('page')  # 현재 페이지 번호
         page_obj = paginator.get_page(page_number)
 
-        
         user_comments_serialized=[]
         for comment in page_obj:
             serialized_comment=CommentSerializers(comment).data
@@ -149,12 +148,24 @@ class MyCommentDetail(APIView):
         
     def get(self, request, pk):#게시글 삭제되면 댓글 자동 삭제 됌
         comment=self.get_object(pk)
-
-        serializer=CommentSerializers(
-            comment,
-            context={"request":request},
+        post = comment.post
+        if not post:
+            return Response({"error":"게시글이 삭제되었습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        post_serializer = PostDetailSerializers(
+            post,
+            context={"request": request},
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+        comment_serializer = CommentSerializers(
+            comment,
+            context={"request": request},
+        )
+        response_data = {
+            "post": post_serializer.data,
+            "comment": comment_serializer.data,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
     
     def put(self, request, pk):
         comment=self.get_object(pk)
