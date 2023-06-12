@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from .models import Bookmark
 from .serializers import  BookmarkSerializers
 
@@ -54,20 +54,14 @@ class MarkDetail(APIView):
         
     def get(self, request, pk):
         post=self.get_object(pk)
+        bookmarks=Bookmark.objects.filter(user=request.user, post=post)
+        if not bookmarks:
+            return Response({"error": "해당 게시물이 북마크에 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
         post_serializer = PostDetailSerializers(
             post,
             context={"request":request},
         )
-        comments = Comment.objects.filter(parent_comment=None)
-        comments_serializer=ReplySerializers(
-            comments,
-            many=True,
-        )
-        return Response(
-            {
-                "post":post_serializer.data,
-                "comments":comments_serializer.data
-            },
-            status=status.HTTP_200_OK
-        )
+        
+        return Response({"post":post_serializer.data},status=status.HTTP_200_OK)
     
