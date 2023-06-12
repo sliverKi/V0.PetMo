@@ -132,8 +132,10 @@ class PostSerializers(ModelSerializer):#댓글 없음.
                             raise ParseError("이미지는 최대 5장 까지 업로드 할 수 있습니다.") 
                     else:
                         raise ParseError("image 잘못된 형식 입니다.")               
-
+                
                 if pet_category_data:
+                    if len(pet_category_data) > 3:
+                        raise ParseError("boardAnimalTypes는 최대 3개까지 선택할 수 있습니다.")
                     if isinstance(pet_category_data, list):
                         for pet_category in pet_category_data:
                             pet_category = get_object_or_404(Pet,animalTypes=pet_category)
@@ -272,7 +274,7 @@ class PostDetailSerializers(ModelSerializer):#image 나열
     
     def update(self, instance, validated_data):
         
-        instance.boardAnimalTypes.clear()
+        # instance.boardAnimalTypes.clear()
         pet_category_data = validated_data.pop("boardAnimalTypes", None)
         category_data = validated_data.pop("categoryType", None)
         image_data = validated_data.pop("Image", None)
@@ -301,8 +303,10 @@ class PostDetailSerializers(ModelSerializer):#image 나열
         instance = super().update(instance, validated_data)
 
         # Update the many-to-many fields
-        
+        if pet_category_data and len(pet_category_data) > 3:
+            raise ParseError("boardAnimalTypes는 최대 3개까지 선택할 수 있습니다.")
         if pet_category_data is not None:
+            instance.boardAnimalTypes.clear()
             for pet_category in pet_category_data:
                 print("aa: ", pet_category)
                 animalTypes = pet_category.get("animalTypes")
@@ -310,7 +314,7 @@ class PostDetailSerializers(ModelSerializer):#image 나열
                 if animalTypes:
                     pet_category, _ = Pet.objects.get_or_create(animalTypes=animalTypes)
                     instance.boardAnimalTypes.add(pet_category)
-        
+
         instance.save()
         return instance
   

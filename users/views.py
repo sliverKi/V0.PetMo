@@ -5,6 +5,8 @@ from drf_yasg import openapi
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.hashers import check_password 
 from django.conf import settings
+from django.core.paginator import Paginator
+
 from config.settings import KAKAO_API_KEY, GOOGLE_MAPS_API_KEY
 
 from rest_framework.views import APIView
@@ -12,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ParseError, NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
+
 
 from .models import User, Address
 from . import serializers
@@ -23,7 +26,9 @@ from .serializers import (
     )
 from pets.models import Pet
 from posts.models import Post, Comment
+
 from posts.serializers import PostDetailSerializers,PostListSerializers, CommentSerializers, ReplySerializers
+
 
 #start images: docker run -p 8000:8000 petmo-back
 class StaticInfo(APIView):
@@ -33,17 +38,26 @@ class StaticInfo(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class MyPost(APIView):  
+  
     def get(self, request):
         user = request.user
 
-        user_posts=Post.objects.filter(user=user)#user가 작성한 게시글
-        user_post_serialized = PostListSerializers(user_posts, many=True).data
-        
+        user_posts=Post.objects.filter(user=user).order_by('-updatedDate')#user가 작성한 게시글
+        # Pagination 설정
+        paginator = Paginator(user_posts, 10)  # 페이지당 10개의 게시물을 보여줄 경우
+        page_number = request.GET.get('page')  # 현재 페이지 번호
+        page_obj = paginator.get_page(page_number)
+        user_post_serialized = PostListSerializers(page_obj, many=True).data
+
         response_data = {
-            # "user": TinyUserSerializers(user).data,
             "user_posts": user_post_serialized,
+            "total_pages": paginator.num_pages,  # 전체 페이지 수
+            "current_page": page_obj.number,  # 현재 페이지 번호
+            "has_previous": page_obj.has_previous(),  # 이전 페이지 존재 여부
+            "has_next": page_obj.has_next(),  # 다음 페이지 존재 여부
         }
         return Response(response_data, status=status.HTTP_200_OK)
+        
     
 class MyPostDetail(APIView):
     def get_object(self,pk):
@@ -74,7 +88,6 @@ class MyPostDetail(APIView):
             data=request.data,
             partial=True
         )
-        print("re: ", request.data)
         if serializer.is_valid():
             try:
                 post=serializer.save(
@@ -87,7 +100,7 @@ class MyPostDetail(APIView):
                 
             post = serializer.save(
                 category=request.data.get("categoryType"),
-                boardAnimalTypes=request.data.get("boardAnimalTypes")
+                # boardAnimalTypes=request.data.get("boardAnimalTypes")
                 )    
             serializer=PostDetailSerializers(post)
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -102,19 +115,28 @@ class MyPostDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class MyComment(APIView):    
+class MyComment(APIView): 
     def get(self, request):
         user=request.user
-        user_comments=Comment.objects.filter(user=user, parent_comment=None).select_related('post')#user가 작성한 댓글 
+        user_comments=Comment.objects.filter(user=user, parent_comment=None).select_related('post').order_by('-updatedDate')#user가 작성한 댓글 
+        # Pagination 설정
+        paginator = Paginator(user_comments, 5)  # 페이지당 10개의 댓글을 보여줄 경우
+        page_number = request.GET.get('page')  # 현재 페이지 번호
+        page_obj = paginator.get_page(page_number)
+
         
         user_comments_serialized=[]
-        for comment in user_comments:
+        for comment in page_obj:
             serialized_comment=CommentSerializers(comment).data
             serialized_comment['post_content']=comment.post.content   
             user_comments_serialized.append(serialized_comment)
         
         response_data = {
             "user_comments": user_comments_serialized,
+            "total_pages": paginator.num_pages,  # 전체 페이지 수
+            "current_page": page_obj.number,  # 현재 페이지 번호
+            "has_previous": page_obj.has_previous(),  # 이전 페이지 존재 여부
+            "has_next": page_obj.has_next(),  # 다음 페이지 존재 여부
         }
         return Response(response_data, status=status.HTTP_200_OK)
     
