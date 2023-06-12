@@ -57,9 +57,6 @@ class LogOut(APIView):
       
 class Register(APIView):
     
-    def get(self, request):
-        return Response({"회원가입: email, password, username을 입력해 주세요."}, status=status.HTTP_200_OK)
-    
     #input data {"email":"moomoo@gmail.com", "username":"eungimoo", "password":"eungi"}
     def post(self, request, format=None):#privateUserSerializers
         password=request.data.get("password")

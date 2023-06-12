@@ -253,6 +253,6 @@ if not DEBUG:#개발 환경에서는 작동 안함
         traces_sample_rate=1.0,
         send_default_pii=True
     )
-
-SESSION_COOKIE_AGE = 3600   # 세션 쿠키는 3600초(1시간) 동안 유지
+#Session
+SESSION_COOKIE_AGE = 3600 # 세션 쿠키는 3600초(1시간) 동안 유지
 #SESSION_EXPIRE_AT_BROWSER_CLOSE = False : 브라우저 닫아도 세션 유지 안함 
