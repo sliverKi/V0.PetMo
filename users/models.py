@@ -27,14 +27,14 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
-    address=models.ForeignKey(
-        "users.Address",
-        max_length=255,
-        null=True,
-        blank=True, 
-        on_delete=models.SET_NULL,
-        related_name="users"
-    )
+    # address=models.ForeignKey(
+    #     "users.Address",
+    #     max_length=255,
+    #     null=True,
+    #     blank=True, 
+    #     on_delete=models.SET_NULL,
+    #     related_name="users"
+    # )
     hasPet=models.BooleanField(default=False)
     pets=models.ManyToManyField(
         "pets.Pet",

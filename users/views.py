@@ -256,7 +256,7 @@ class getAddress(APIView):
                 address.addressName=request.data.get('addressName')
                 user.user_address=address
                 user.save()
-                serializer=AddressSerializers(address)
+                serializer=AddressSerializer(address)
                 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -284,20 +284,14 @@ class getAddress(APIView):
    
     def delete(self, request):
         user=request.user
-        print("user", user)
         address_id = user.user_address.id
-        print(user.user_address.id)
-        try:
-            address=Address.objects.get(id=address_id)
-        except Address.DoesNotExist:
-            return Response({"error":"해당 주소가 존재하지 않습니다."},status=status.HTTP_404_NOT_FOUND)    
-        
+        address=Address.objects.get(id=address_id)
         if request.user!=address.user:
             raise PermissionDenied("내 동네 삭제 권한이 없습니다.")
         user.user_address.delete()
         user.user_address=None
         user.save()
-        return Response({"Success address delete."},status=status.HTTP_200_OK)
+        return Response({"Success address delete."},status=status.HTTP_204_NO_CONTENT)
        
 
 class getIP(APIView):#ip기반 현위치 탐색
