@@ -77,7 +77,7 @@ class Address(models.Model):
 
     regionDepth1=models.CharField(max_length=255,default="")
     regionDepth2=models.CharField(max_length=255,default="")
-    regionDepth3=models.CharField(max_length=255,default="")
+    regionDepth3=models.CharField(max_length=255,default="", blank=True, null=True)
     
     def __str__(self) -> str:
         return self.addressName 
