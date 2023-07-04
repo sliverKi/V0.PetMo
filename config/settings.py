@@ -91,7 +91,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.proxy.ProxyMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
