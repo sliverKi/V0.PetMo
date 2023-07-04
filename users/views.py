@@ -296,7 +296,6 @@ class getAddress(APIView):
 
 class getIP(APIView):#ip기반 현위치 탐색
     # permission_classes=[IsAuthenticated]#인가된 사용자만 허용
-
     def get(self, request):
         try:
             client_ip_address  = request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')#현재 접속 ip

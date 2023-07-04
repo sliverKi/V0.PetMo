@@ -33,7 +33,7 @@ class LogIn(APIView):
             user = User.objects.get(email=email)
             
         except User.DoesNotExist:
-            raise NotFound
+            return Response({"error":"존재하지 않는 사용자 입니다. 회원가입을 먼저 해주세요."}, status=status.HTTP_401_UNAUTHORIZED)
         
         if not email or not password:
            return Response({"error":"이메일과 비밀번호를 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
