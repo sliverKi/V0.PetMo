@@ -54,15 +54,14 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
-# AUTH_COOKIE_DOMAIN=".petmo.monster"
-
-# SESSION_COOKIE_DOMAIN = ".petmo.monster"
-# CSRF_COOKIE_DOMAIN = ".petmo.monster"
-# SESSION_COOKIE_SECURE = False
-# SESSION_COOKIE_HTTPONLY = False
-# CSRF_COOKIE_SECURE = False
-# SESSION_COOKIE_SAMESITE = "Lax"
-# CSRF_COOKIE_SAMESITE = "Lax"
+AUTH_COOKIE_DOMAIN=".petmo.monster"
+SESSION_COOKIE_DOMAIN = ".petmo.monster"
+CSRF_COOKIE_DOMAIN = ".petmo.monster"
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
 
 THIRD_PARTY_APPS=[
     # "rest_framework_simplejwt.token_blacklist",
