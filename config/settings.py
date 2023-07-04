@@ -52,6 +52,8 @@ CORS_ALLOW_HEADERS = [
 ]
 CSRF_COOKIE_SECURE=False
 AUTH_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE=False
+AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
 CSRF_COOKIE_SAMESITE = "Lax"
 THIRD_PARTY_APPS=[
     # "rest_framework_simplejwt.token_blacklist",
