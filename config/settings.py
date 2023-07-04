@@ -41,7 +41,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
-    # "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app/" # :: "front-address"
+    "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app" # :: "front-address"
 ]
 CORS_ALLOW_HEADERS = [
     'accept',
