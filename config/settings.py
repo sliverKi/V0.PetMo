@@ -55,10 +55,10 @@ CORS_ALLOW_HEADERS = [
     'X-CSRFToken'
     'x-requested-with',
 ]
-# AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
-AUTH_COOKIE_DOMAIN="petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app"
-SESSION_COOKIE_DOMAIN = "petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app"
-CSRF_COOKIE_DOMAIN = "petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app"
+AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
+# AUTH_COOKIE_DOMAIN="petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app"
+SESSION_COOKIE_DOMAIN = ".backend.petmo.monster"
+CSRF_COOKIE_DOMAIN = ".backend.petmo.monster"
 SESSION_COOKIE_SECURE = False
 # SESSION_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = False
