@@ -25,9 +25,12 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-CORS_ALLOW_CREDENTIALS = True
+
 
 # CORS_ORIGIN_ALLOW = True
+
+#CORS Setting
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS=True
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
@@ -36,7 +39,20 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app/" # :: "front-address"
 ]
-
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CSRF_COOKIE_SECURE=False
+AUTH_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "Lax"
 THIRD_PARTY_APPS=[
     # "rest_framework_simplejwt.token_blacklist",
     # "dj_rest_auth",
