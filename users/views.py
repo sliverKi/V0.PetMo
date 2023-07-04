@@ -324,6 +324,7 @@ class getIP(APIView):#ip기반 현위치 탐색
             
                 datas=response.json().get('documents')
                 print("datas: ", datas)
+                
                 if response.status_code==200:
                     address=[]
                     for data in datas:
@@ -335,7 +336,7 @@ class getIP(APIView):#ip기반 현위치 탐색
                         })
                     return Response(address, status=status.HTTP_200_OK)
                 else:
-                    return Response({"error":"Failed to get region data for IP address."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error":"Failed to get region data for IP address."}, status=status.HTTP_400_BAD_REQUEST)#error
             else:
                 return Response({"error": "Failed to get geolocation data for IP address."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:

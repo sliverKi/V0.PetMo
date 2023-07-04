@@ -91,6 +91,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.proxy.ProxyMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
@@ -140,6 +141,14 @@ if not DEBUG:
 #debug tool-bar        
 INTERNAL_IPS=[
     '127.0.0.1',
+]
+
+#render proxy client IP Address
+TRUSTED_PROXY_IPS=[
+    '127.0.0.1',
+    '13.228.225.19',
+    '18.142.128.26',
+    '54.254.162.138'
 ]
 REST_FRAMEWORK={
     'DEFAULT_AUTHENTICATION_CLASSES':(
