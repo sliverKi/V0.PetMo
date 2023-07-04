@@ -52,13 +52,14 @@ CORS_ALLOW_HEADERS = [
     'origin',
     'user-agent',
     'x-csrftoken',
+    'X-CSRFToken'
     'x-requested-with',
 ]
 AUTH_COOKIE_DOMAIN=".petmo.monster"
 SESSION_COOKIE_DOMAIN = ".petmo.monster"
 CSRF_COOKIE_DOMAIN = ".petmo.monster"
 SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_HTTPONLY = False
+# SESSION_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SAMESITE = "None"
