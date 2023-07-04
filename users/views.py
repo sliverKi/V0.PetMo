@@ -365,10 +365,19 @@ class getQuery(APIView):#검색어 입력 기반 동네 검색
         response=requests.get(search_url, headers=headers, params=params)
         print("res", response)
         datas=response.json()
-        if not datas['documents']:
-            raise ValidationError("error: 입력하신 주소가 존재하지 않습니다.")
         
-        return Response(datas, status=status.HTTP_200_OK)
+        if 'documents' not in datas or not datas['documents']:
+            raise ValidationError("error: 입력하신 주소가 존재하지 않습니다.")
+        results=[]
+        for document in datas['documents']:
+            result={
+                "region_1depth_name": document['address']['region_1depth_name'],
+                "region_2depth_name": document['address']['region_2depth_name'],
+                "region_3depth_h_name": document['address']['region_3depth_h_name'],
+                "region_3depth_name": document['address']['region_3depth_name'],
+            }
+            results.append(result)
+        return Response(results, status=status.HTTP_200_OK)
 
 class getPets(APIView): #유저의 동물 등록
     def get(self, request):
