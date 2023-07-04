@@ -33,7 +33,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS=True
 CORS_ALLOWED_ORIGINS = [
-    "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app/",
+    "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
