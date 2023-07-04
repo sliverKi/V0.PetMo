@@ -32,6 +32,7 @@ from posts.serializers import PostDetailSerializers,PostListSerializers, Comment
 
 #start images: docker run -p 8000:8000 petmo-back
 class StaticInfo(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         user=request.user
         serializer=UserSerializers(user)
