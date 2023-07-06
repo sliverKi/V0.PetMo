@@ -19,7 +19,12 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env("SECRET_KEY")
 
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "backend.petmo.monster",
+    "frontend.petmo.monster", 
+    "petmo.mpnster"
+]
+    
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
