@@ -150,8 +150,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-#DEBUG = 'RENDER' not in os.environ-->서버 베포시 주석 해제 
-DEBUG=True
+DEBUG = 'RENDER' not in os.environ
+# DEBUG=True
 
 if DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
