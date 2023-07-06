@@ -34,6 +34,8 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS=True
 CORS_ALLOWED_ORIGINS = [
     "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app",
+    "https://frontend.petmo.monster"
+    
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -41,7 +43,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
-    "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app" # :: "front-address"
+    "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app", # : "front-address"
+    "https://frontend.petmo.monster"
 ]
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -106,7 +109,6 @@ SITE_ID = 1
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
 AUTHENTICATION_BACKENDS = [
-    
     "django.contrib.auth.backends.ModelBackend",
 ]
 MIDDLEWARE = [
