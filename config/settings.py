@@ -20,6 +20,7 @@ SECRET_KEY = env("SECRET_KEY")
 
 
 ALLOWED_HOSTS = [
+    "127.0.0.1",
     "backend.petmo.monster",
     "frontend.petmo.monster", 
     "petmo.monster"

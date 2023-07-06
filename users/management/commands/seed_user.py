@@ -32,7 +32,7 @@ class Command(BaseCommand):
             "username": lambda x : fake.user_name(),
             "email": lambda x : fake.email(),
             "profile": lambda x: fake.url(),
-            "address": None,
+            # "address": None,
             "hasPet": lambda x : random.choice([True, False]),
             "first": True,
             "is_staff": False,
