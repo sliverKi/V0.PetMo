@@ -9,7 +9,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from config.logger import CustomisedJSONFormatter
 import dj_database_url
-#test : csrftoken
+#tests
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
