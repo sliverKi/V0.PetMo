@@ -22,7 +22,7 @@ SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS = [
     "backend.petmo.monster",
     "frontend.petmo.monster", 
-    "petmo.mpnster"
+    "petmo.monster"
 ]
     
 
