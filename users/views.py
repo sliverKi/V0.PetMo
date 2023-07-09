@@ -324,6 +324,8 @@ class getIP(APIView):#ip기반 현위치 탐색
             
                 datas=response.json().get('documents')
                 print("datas: ", datas)
+                if datas:#추가
+                    return Response({"error":"datas is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 response.json().get('error')#추가
                 if response.status_code==200:
                     address=[]
