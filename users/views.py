@@ -296,10 +296,21 @@ class getAddress(APIView):
        
 
 class getIP(APIView):#ip기반 현위치 탐색
-    # permission_classes=[IsAuthenticated]#인가된 사용자만 허용
+    permission_classes=[IsAuthenticated]#인가된 사용자만 허용
+    
+    def get_clientIP(self, request):
+        if request.META.get('HTTP_X_FORWARDED_FOR'):
+            client_ip_address  = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0]
+            print("use XFF, client IP address: ", client_ip_address)
+        else:
+            client_ip_address  = request.META.get('REMOTE_ADDR')
+            print("use REMOTE, client IP address", client_ip_address)
+        return client_ip_address
+
     def get(self, request):
         try:
-            client_ip_address  = request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')#현재 접속 ip
+            
+            client_ip_address  = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0] or request.META.get('REMOTE_ADDR')#현재 접속 ip
             print("client IP address: ", client_ip_address)
 
             if not client_ip_address:
