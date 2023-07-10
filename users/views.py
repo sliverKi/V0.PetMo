@@ -321,9 +321,10 @@ class getIP(APIView):#ip기반 현위치 탐색
                 Xlongitude = location.get('lng')#경도
                 print("경도:, ",Xlongitude )
                 region_url= f'https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x={Xlongitude}&y={Ylatitude}'
+                print("2:", region_url)#kakao url
                 headers={'Authorization': f'KakaoAK {KAKAO_API_KEY}' }
                 response=requests.get(region_url, headers=headers)
-            
+                
                 datas=response.json().get('documents')
                 print("datas: ", datas)
                 if not datas:#추가
