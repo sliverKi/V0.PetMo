@@ -309,6 +309,8 @@ class getIP(APIView):#ip기반 현위치 탐색
                 'considerIp':'true',#IP참조 
             }
             result=requests.post(geolocation_url, json=data)
+            if not result:
+                return Response({"error":"result is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             # print("result", result)
         
             if result.status_code==200: #get KAKAO_API url-start
