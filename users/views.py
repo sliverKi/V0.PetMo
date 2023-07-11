@@ -318,9 +318,10 @@ class getIP(APIView):#ip기반 현위치 탐색
             geolocation_url =  f'https://www.googleapis.com/geolocation/v1/geolocate?key={GOOGLE_MAPS_API_KEY}'#구글API
             data = {
                 'considerIp':'true',#IP참조 
+                'userIpAddress': client_ip_address,
             }
             result=requests.post(geolocation_url, json=data)
-            
+            print("result", result)
             if not result:
                 return Response({"error":"result is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             # print("result", result)
