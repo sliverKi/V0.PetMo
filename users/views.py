@@ -301,6 +301,7 @@ class getIP(APIView):#ip기반 현위치 탐색
     def get_clientIP(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
+            print("ip주소들 ", x_forwarded_for)
             client_ip_address = x_forwarded_for.split(',')[0].strip()
             print("use XFF, client IP address: ", client_ip_address)
         else:
@@ -312,9 +313,6 @@ class getIP(APIView):#ip기반 현위치 탐색
         try:
             client_ip_address = self.get_clientIP(request)  # 현재 접속 IP
             print("최종 client IP address:", client_ip_address)
-            # client_ip_address  = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0] or request.META.get('REMOTE_ADDR')#현재 접속 ip
-            # print("client IP address: ", client_ip_address)
-
             if not client_ip_address:
                 return Response({"error": "Could not get Client IP address."}, status=status.HTTP_400_BAD_REQUEST)
             geolocation_url =  f'https://www.googleapis.com/geolocation/v1/geolocate?key={GOOGLE_MAPS_API_KEY}'#구글API
@@ -328,7 +326,7 @@ class getIP(APIView):#ip기반 현위치 탐색
             # print("result", result)
         
             if result.status_code==200: #구글API에서 위도 경도를 추출하고 KAKAO_API에 전달
-                # print("api 요청 접속 성공 ")
+                print("client_ip_address", client_ip_address)
                 location = result.json().get('location')
                 Ylatitude = location.get('lat')#위도
                 print("위도:",Ylatitude )
