@@ -299,9 +299,9 @@ class getIP(APIView):#ip기반 현위치 탐색
     permission_classes=[IsAuthenticated]#인가된 사용자만 허용
     
     def get_clientIP(self, request):
-        if request.META.get('HTTP_X_FORWARDED_FOR'):
-            print("0", request.META.get('HTTP_X_FORWARDED_FOR'))
-            client_ip_address  = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0]
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            client_ip_address = x_forwarded_for.split(',')[0].strip()
             print("use XFF, client IP address: ", client_ip_address)
         else:
             client_ip_address  = request.META.get('REMOTE_ADDR')
@@ -322,6 +322,7 @@ class getIP(APIView):#ip기반 현위치 탐색
                 'considerIp':'true',#IP참조 
             }
             result=requests.post(geolocation_url, json=data)
+            
             if not result:
                 return Response({"error":"result is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             # print("result", result)
