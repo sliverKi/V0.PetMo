@@ -184,12 +184,12 @@ INTERNAL_IPS=[
 ]
 
 #render proxy client IP Address
-TRUSTED_PROXY_IPS=[
-    '127.0.0.1',
-    '13.228.225.19',
-    '18.142.128.26',
-    '54.254.162.138'
-]
+# TRUSTED_PROXY_IPS=[
+#     '127.0.0.1',
+#     '13.228.225.19',
+#     '18.142.128.26',
+#     '54.254.162.138'
+# ]
 REST_FRAMEWORK={
     'DEFAULT_AUTHENTICATION_CLASSES':(
         # 'rest_framework.authentication.TokenAuthentication',
