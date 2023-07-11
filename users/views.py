@@ -300,6 +300,7 @@ class getIP(APIView):#ip기반 현위치 탐색
     
     def get_clientIP(self, request):
         if request.META.get('HTTP_X_FORWARDED_FOR'):
+            print("0", request.META.get('HTTP_X_FORWARDED_FOR'))
             client_ip_address  = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0]
             print("use XFF, client IP address: ", client_ip_address)
         else:
