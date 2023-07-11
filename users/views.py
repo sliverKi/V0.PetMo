@@ -321,7 +321,7 @@ class getIP(APIView):#ip기반 현위치 탐색
                 'userIpAddress': client_ip_address,
             }
             result=requests.post(geolocation_url, json=data)
-            print("result", result)
+            print("result", result.json())
             if not result:
                 return Response({"error":"result is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             # print("result", result)
