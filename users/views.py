@@ -7,7 +7,7 @@ from django.contrib.auth.hashers import check_password
 from django.conf import settings
 from django.core.paginator import Paginator
 
-from config.settings import KAKAO_API_KEY, GOOGLE_MAPS_API_KEY
+from config.settings import KAKAO_API_KEY, IP_GEOAPI, GOOGLE_MAPS_API_KEY
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -322,13 +322,17 @@ class getIP(APIView):#ip기반 현위치 탐색
             print("최종 client IP address:", client_ip_address)
             if not client_ip_address:
                 return Response({"error": "Could not get Client IP address."}, status=status.HTTP_400_BAD_REQUEST)
-            geolocation_url =  f'https://www.googleapis.com/geolocation/v1/geolocate?key={GOOGLE_MAPS_API_KEY}'#구글API
-            data = {
-                'considerIp':'true',#IP참조 
-                'userIpAddress': client_ip_address,
-                'address': {'country': '대한민국'},
-            }
-            result=requests.post(geolocation_url, json=data)
+            
+            ip_geolocation_url=f'https://geo.ipify.org/api/v2/country,city?apiKey={IP_GEOAPI}&ipAddress={client_ip_address}'
+            # geolocation_url =  f'https://www.googleapis.com/geolocation/v1/geolocate?key={GOOGLE_MAPS_API_KEY}'#구글API
+
+            # data = {
+            #     'considerIp':'true',#IP참조 
+            #     'homeMobileCountryCode': 450,
+            #     'address': {'country': '대한민국'},
+               
+            # }
+            result=requests.post(ip_geolocation_url, json=data)
             print("result", result.json())
             if not result:
                 return Response({"error":"result is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
