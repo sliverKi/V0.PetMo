@@ -29,7 +29,7 @@ from posts.models import Post, Comment
 
 from posts.serializers import PostDetailSerializers,PostListSerializers, CommentSerializers, ReplySerializers
 from urllib.request import urlopen
-
+import json
 #start images: docker run -p 8000:8000 petmo-back
 class StaticInfo(APIView):
     permission_classes = [IsAuthenticated]
@@ -324,22 +324,15 @@ class getIP(APIView):#ip기반 현위치 탐색
                 return Response({"error": "Could not get Client IP address."}, status=status.HTTP_400_BAD_REQUEST)
             
             ip_geolocation_url=f'https://geo.ipify.org/api/v2/country,city?apiKey={IP_GEOAPI}&ipAddress={client_ip_address}'
-            print(urlopen(ip_geolocation_url).read().decode('utf8'))
-            # geolocation_url =  f'https://www.googleapis.com/geolocation/v1/geolocate?key={GOOGLE_MAPS_API_KEY}'#구글API
-
-            # data = {
-            #     'considerIp':'true',#IP참조 
-            #     'homeMobileCountryCode': 450,
-            #     'address': {'country': '대한민국'},
-               
-            # }
-         
             result=urlopen(ip_geolocation_url).read().decode('utf8')
+            # print(urlopen(ip_geolocation_url).read().decode('utf8'))
+        
             # result=requests.post(ip_geolocation_url, json=data)
-            print("result", result.json())
-            
-            if not result:
-                return Response({"error":"result is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print("result: ", result)
+            res_data=json.loads(result)
+            print("status_code",res_data.status_code)
+            if not res_data:
+                return Response({"error":"res_data is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             # print("result", result)
         
             if result.status_code==200: #구글API에서 위도 경도를 추출하고 KAKAO_API에 전달
