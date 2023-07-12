@@ -330,15 +330,15 @@ class getIP(APIView):#ip기반 현위치 탐색
             # result=requests.post(ip_geolocation_url, json=data)
             print("result: ", result)
             res_data=json.loads(result)
-            print("res_data", res_data)
+            # print("res_data", res_data)
             # print("status_code",res_data.status_code)
             if not res_data:
                 return Response({"error":"res_data is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             # print("result", result)
         
-            if result.status_code==200: #구글API에서 위도 경도를 추출하고 KAKAO_API에 전달
+            if res_data: #구글API에서 위도 경도를 추출하고 KAKAO_API에 전달
                 print("client_ip_address", client_ip_address)
-                location = result.json().get('location')
+                location = res_data.get('location')
                 Ylatitude = location.get('lat')#위도
                 print("위도:",Ylatitude )
                 Xlongitude = location.get('lng')#경도
