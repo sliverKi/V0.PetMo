@@ -284,7 +284,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.User"
 
 #External API KEY
-GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY")
 KAKAO_API_KEY=env("KAKAO_API_KEY")
 IP_GEOAPI=env("IP_GEOAPI")
 #Cloudflare

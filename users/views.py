@@ -7,7 +7,7 @@ from django.contrib.auth.hashers import check_password
 from django.conf import settings
 from django.core.paginator import Paginator
 
-from config.settings import KAKAO_API_KEY, IP_GEOAPI, GOOGLE_MAPS_API_KEY
+from config.settings import KAKAO_API_KEY, IP_GEOAPI
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -308,13 +308,7 @@ class getIP(APIView):#ip기반 현위치 탐색
             client_ip_address  = request.META.get('REMOTE_ADDR')
             print("use REMOTE, client IP address", client_ip_address)
         return client_ip_address
-        # if request.META.get('REMOTE_ADDR'):
-        #     client_ip_address  = request.META.get('REMOTE_ADDR')
-        #     print("use REMOTE, client IP address", client_ip_address)
-        # else:
-        #     client_ip_address = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0].strip()
-        #     print("use XFF, client IP address: ", client_ip_address)
-        # return client_ip_address
+
     
     def get(self, request):
         try:
@@ -327,14 +321,13 @@ class getIP(APIView):#ip기반 현위치 탐색
             result=urlopen(ip_geolocation_url).read().decode('utf8')
             # print(urlopen(ip_geolocation_url).read().decode('utf8'))
         
-            # result=requests.post(ip_geolocation_url, json=data)
             print("result: ", result)
             res_data=json.loads(result)
             # print("res_data", res_data)
-            # print("status_code",res_data.status_code)
+            
             if not res_data:
                 return Response({"error":"res_data is empty."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            # print("result", result)
+            
         
             if res_data: #구글API에서 위도 경도를 추출하고 KAKAO_API에 전달
                 print("client_ip_address", client_ip_address)
