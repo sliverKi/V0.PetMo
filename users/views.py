@@ -28,7 +28,7 @@ from pets.models import Pet
 from posts.models import Post, Comment
 
 from posts.serializers import PostDetailSerializers,PostListSerializers, CommentSerializers, ReplySerializers
-
+from urllib.request import urlopen
 
 #start images: docker run -p 8000:8000 petmo-back
 class StaticInfo(APIView):
@@ -299,22 +299,22 @@ class getIP(APIView):#ip기반 현위치 탐색
     permission_classes=[IsAuthenticated]#인가된 사용자만 허용
     
     def get_clientIP(self, request):
-        # x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        # if x_forwarded_for:
-        #     print("ip주소들 ", x_forwarded_for)
-        #     client_ip_address = x_forwarded_for.split(',')[0].strip()
-        #     print("use XFF, client IP address: ", client_ip_address)
-        # else:
-        #     client_ip_address  = request.META.get('REMOTE_ADDR')
-        #     print("use REMOTE, client IP address", client_ip_address)
-        # return client_ip_address
-        if request.META.get('REMOTE_ADDR'):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            print("ip주소들 ", x_forwarded_for)
+            client_ip_address = x_forwarded_for.split(',')[0].strip()
+            print("use XFF, client IP address: ", client_ip_address)
+        else:
             client_ip_address  = request.META.get('REMOTE_ADDR')
             print("use REMOTE, client IP address", client_ip_address)
-        else:
-            client_ip_address = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0].strip()
-            print("use XFF, client IP address: ", client_ip_address)
         return client_ip_address
+        # if request.META.get('REMOTE_ADDR'):
+        #     client_ip_address  = request.META.get('REMOTE_ADDR')
+        #     print("use REMOTE, client IP address", client_ip_address)
+        # else:
+        #     client_ip_address = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0].strip()
+        #     print("use XFF, client IP address: ", client_ip_address)
+        # return client_ip_address
     
     def get(self, request):
         try:
@@ -324,6 +324,7 @@ class getIP(APIView):#ip기반 현위치 탐색
                 return Response({"error": "Could not get Client IP address."}, status=status.HTTP_400_BAD_REQUEST)
             
             ip_geolocation_url=f'https://geo.ipify.org/api/v2/country,city?apiKey={IP_GEOAPI}&ipAddress={client_ip_address}'
+            print(urlopen(ip_geolocation_url).read().decode('utf8'))
             # geolocation_url =  f'https://www.googleapis.com/geolocation/v1/geolocate?key={GOOGLE_MAPS_API_KEY}'#구글API
 
             # data = {
@@ -332,6 +333,8 @@ class getIP(APIView):#ip기반 현위치 탐색
             #     'address': {'country': '대한민국'},
                
             # }
+         
+
             result=requests.post(ip_geolocation_url, json=data)
             print("result", result.json())
             if not result:
