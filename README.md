@@ -21,3 +21,13 @@ Original development of Petmo Project.
 ## * :bulb: 프로젝트 정보
 https://docs-myfavor.gitbook.io/petmo/
 
+## * :bulb: 주요 기능 
+    
+### - 로그인 & 로그아웃
+   - DB값 검증
+   - E-mail 로그인
+   - ID, PW 일치 불일치 검증 
+   - PW 변경,
+   - PW 찾기시 사용자의 email일 주소로 PW reset link 전송
+   - 로그인 시 쿠키(Cookie) 및 세션(Session) 생성
+
