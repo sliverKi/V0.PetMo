@@ -7,6 +7,14 @@ Original development of Petmo Project.
 프로젝트 소개 :
 지역기반 반려동물 커뮤니티 
 
+본 프로젝트는 지역기반으로 반려동물에 관심있는 사람으로 하여금 서로 소통하고 
+
+지식을 공유하여 반려동물 생활에 대한 이해를 높이고, 반려 지식의 진입장벽을 낮춰
+
+반려동물의 입양을 고민하거나 반려동물을 키우는 동안 발생할 수 있는 고충을 낮추는데에 
+
+기여하는 서비스를 제공합니다. 
+
 ![petmo-intro](https://github.com/sliverKi/V0.PetMo/assets/121347506/549b2a20-92c0-4846-8afb-18d44c5a1eb7)
 
 <p align="center">
