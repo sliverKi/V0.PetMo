@@ -40,7 +40,7 @@ https://docs-myfavor.gitbook.io/v0petmo/
    - 로그인 시 쿠키(Cookie) 및 세션(Session) 생성
      
 ### - 내동네 설정
-   - 접속한 client IP 기반으로 현 위치 추론
+   - [접속하 client ip로 현재 위치 추론하기](https://velog.io/@sliverki/project-Client-IP-%EC%B6%94%EC%A0%81%ED%95%98%EA%B8%B0)
    - client ip를 Geo API에 전달하여 위도, 경도 data 추출
    - client ip에서 위도, 경도 data 추출 후 kakao local Rest-API에 전송하여 지역 data를 서버에 전달  
    - client가 입력한 검색어 기반으로 위치 추론
