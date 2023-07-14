@@ -11,9 +11,9 @@ Original development of Petmo Project.
 
 <p align="center">
     <p><p>
-    <img src="https://github.com/sliverKi/V0.PetMo/assets/121347506/5c636829-2321-44c4-9003-286db11425d0" width="33%" height="23%">
-    <img src="https://github.com/sliverKi/V0.PetMo/assets/121347506/4c3c4cca-ffd2-47b6-94a2-92c4941bd933" width="33%" height="23%">
-    <img src="https://github.com/sliverKi/V0.PetMo/assets/121347506/2b298a41-42b4-4921-8fc3-13ba7115e843" width="33%" height="23%">
+    <img src="https://github.com/sliverKi/V0.PetMo/assets/121347506/5c636829-2321-44c4-9003-286db11425d0" width="30%" height="23%">
+    <img src="https://github.com/sliverKi/V0.PetMo/assets/121347506/4c3c4cca-ffd2-47b6-94a2-92c4941bd933" width="30%" height="23%">
+    <img src="https://github.com/sliverKi/V0.PetMo/assets/121347506/2b298a41-42b4-4921-8fc3-13ba7115e843" width="30%" height="23%">
 </p>
 
 
