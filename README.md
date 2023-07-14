@@ -19,7 +19,7 @@ Original development of Petmo Project.
 ![image](https://github.com/sliverKi/V0.PetMo/assets/121347506/7c3c1917-ec56-4361-91f3-f6490af54cd8)
 
 ## * :bulb: 프로젝트 정보
-https://docs-myfavor.gitbook.io/petmo/
+https://docs-myfavor.gitbook.io/v0petmo/
 
 ## * :bulb: 주요 기능 
     
