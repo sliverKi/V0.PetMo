@@ -9,7 +9,8 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from config.logger import CustomisedJSONFormatter
 import dj_database_url
-#tests
+#test: 7월26일
+#로컬서버에서의 cors, csrftoken  설정
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
