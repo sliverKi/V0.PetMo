@@ -39,6 +39,8 @@ if RENDER_EXTERNAL_HOSTNAME:
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS=True
 CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:3000", 
+    "http://localhost:3000", 
     "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app",
     "https://frontend.petmo.monster"
     
