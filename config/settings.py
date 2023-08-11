@@ -9,8 +9,9 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from config.logger import CustomisedJSONFormatter
 import dj_database_url
-#test: 7월26일
+
 #로컬서버에서의 cors, csrftoken  설정
+#momo@gmail.com-momo : debug=True
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -69,8 +70,7 @@ CORS_ALLOW_HEADERS = [
     'Set-Cookie',
 ]
 AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
-# SESSION_COOKIE_DOMAIN = ".petmo.monster"
-# CSRF_COOKIE_DOMAIN = ".petmo.monster"
+
 SESSION_COOKIE_SECURE = False
 # SESSION_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = False
@@ -78,9 +78,7 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_HTTPONLY = False
 CSRF_COOKIE_HTTPONLY = False
-#axios
-# CSRF_COOKIE_NAME = 'XSRF-TOKEN'
-# CSRF_HEADER_NAME = 'X-XSRF-TOKEN'
+
 
 THIRD_PARTY_APPS=[
     # "rest_framework_simplejwt.token_blacklist",
@@ -157,8 +155,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-DEBUG = 'RENDER' not in os.environ
-# DEBUG=True
+
+# DEBUG = 'RENDER' not in os.environ
+DEBUG=True
 
 if DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
@@ -186,13 +185,6 @@ INTERNAL_IPS=[
     '127.0.0.1',
 ]
 
-#render proxy client IP Address
-# TRUSTED_PROXY_IPS=[
-#     '127.0.0.1',
-#     '13.228.225.19',
-#     '18.142.128.26',
-#     '54.254.162.138'
-# ]
 REST_FRAMEWORK={
     'DEFAULT_AUTHENTICATION_CLASSES':(
         # 'rest_framework.authentication.TokenAuthentication',

@@ -18,6 +18,7 @@ from .serializers import (
 from .pagination import PaginaitionHandlerMixin
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.db.models import Q
 
 # #elasticsearch
 # import operator
@@ -120,28 +121,38 @@ class CommentDetail(APIView):# 댓글:  조회 생성, 수정, 삭제(ok)
         return Response(status=status.HTTP_200_OK)
 
 
+class Posts(APIView):#게시글 조회
+
+    def post(self, request):
+        animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
+        all_categoryType=[ "자유", "반려질문", "반려고수", "장소후기", "축하해요", "반려구조대"]
+        print("1: Posts")
+        boardAnimalTypes=request.data.get("boardAnimalTypes", animalTypes)
+        categoryType=request.data.get("categoryType", all_categoryType)
+        print("boardAnimalTypes", boardAnimalTypes) #"categoryType", categoryType)
+        
+        filtered_posts = Post.objects.filter(
+            categoryType__categoryType=categoryType,
+            boardAnimalTypes__animalTypes__in=boardAnimalTypes
+        )
+        print("filtered_posts", filtered_posts)
+        serializers=PostListSerializers(filtered_posts, many=True)
+        if not filtered_posts.exists():
+            print("2")
+            return Response([], status=status.HTTP_200_OK)
+        print("4")
+        return Response( serializers.data, status=status.HTTP_200_OK)
+       
+    
+    # {  "boardAnimalTypes":["강아지"], 
+    #   "categoryType":"자유"
+    # }
+    
+
            
-class Posts(APIView):#image test 해보기 - with front 
+class makePost(APIView):#image test 해보기 - with front 
     # authentication_classes=[SessionAuthentication]
     # permission_classes=[IsAuthenticated]
-    def get(self, request):
-
-        all_posts=Post.objects.all().order_by('-createdDate')
-        # Pagination 설정
-        paginator = Paginator(all_posts, 10)  # 페이지당 10개의 게시물을 보여줄 경우
-        page_number = request.GET.get('page')  # 현재 페이지 번호
-        page_obj = paginator.get_page(page_number)
-
-        serializer = PostListSerializers(page_obj, many=True)
-
-        response_data = {
-            "posts": serializer.data,
-            "total_pages": paginator.num_pages,  # 전체 페이지 수
-            "current_page": page_obj.number,  # 현재 페이지 번호
-            "has_previous": page_obj.has_previous(),  # 이전 페이지 존재 여부
-            "has_next": page_obj.has_next(),  # 다음 페이지 존재 여부
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
   
     def post(self, request):#게시글 생성
     #input data:{"content":"test post", "boardAnimalTypes":["강아지"], "Image":[], "categoryType":"장소후기"} 

@@ -2,7 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns=[
-    path("", views.Posts.as_view()),#[GET,POST, pagination]
+    path("", views.Posts.as_view(), name="get_postlist_by_categories"),
+    path("write/", views.makePost.as_view(), name="make_new_post"),#[GET,POST, pagination]
     path("<int:pk>", views.PostDetail.as_view()),#[GET, PUT(게시글 수정), DELETE]
     
     path("<int:pk>/comments", views.PostComments.as_view()),#[GET, POST(댓글,대댓글 등록가능), pagination]

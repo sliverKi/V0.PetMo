@@ -80,6 +80,7 @@ class TinyPostSerializers(ModelSerializer):#좋아요 기능에서 이용
             "likeCount"#게시글 좋아요 수 
             )
 class PostSerializers(ModelSerializer):#댓글 없음.
+    print("PostSerilaizers")
     categoryType=BoardSerializers(many=True, read_only=True)
     boardAnimalTypes=PetsSerializers(many=True, read_only=True)
     user=TinyUserSerializers(read_only=True)
@@ -158,6 +159,8 @@ class PostSerializers(ModelSerializer):#댓글 없음.
         if images and len(images)>5:
             raise ParseError({"error":"이미지는 최대 5개까지 등록이 가능합니다."})
         return data
+    
+    
 
 class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
     user=SimpleUserSerializer(read_only=True)
@@ -165,6 +168,9 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
     categoryType=BoardSerializers()
     Image=ImageSerializers(many=True, read_only=True, required=False)
     commentCount=serializers.SerializerMethodField()
+    createdDate = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
+    updatedDate = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
+
     class Meta:
         model=Post
         fields=(
@@ -188,6 +194,12 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
         return [] 
     def get_commentCount(self, obj):
         return obj.commentCount
+    
+    # def to_representation(self, instance):
+    #     ret = super().to_representation(instance)
+    #     ret['createdDate'] = instance.createdDate.strftime("%Y-%m-%dT%H:%M:%S")
+    #     ret['updatedDate'] = instance.updatedDate.strftime("%Y-%m-%dT%H:%M:%S")
+    #     return ret
     
 class PostListSerializer(ModelSerializer):#MY/Post에서 이용(일단 보류.)
     user=TinyUserSerializers(read_only=True)
@@ -217,7 +229,11 @@ class PostListSerializer(ModelSerializer):#MY/Post에서 이용(일단 보류.)
             return ImageSerializers(images.first(), context=self.context).data   
         return [] 
     def get_commentCount(self, obj):
-        return obj.commentCount     
+        return obj.commentCount    
+    
+    
+        
+        return self.updatedDate.strftime("%Y-%m-%dT%H:%M:%S") 
 class PostDetailSerializers(ModelSerializer):#image 나열
     user=SimpleUserSerializer()
     boardAnimalTypes=PetsSerializers(many=True)
