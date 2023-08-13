@@ -23,6 +23,7 @@ SECRET_KEY = env("SECRET_KEY")
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
+    "localhost",
     "backend.petmo.monster",
     "frontend.petmo.monster", 
     "petmo.monster"
@@ -69,6 +70,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'Set-Cookie',
 ]
+AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
+SESSION_COOKIE_DOMAIN=".petmo.monster"
+CSRF_COOKIE_DOMAIN=".petmo.monster"
 
 SESSION_COOKIE_SECURE = False
 # SESSION_COOKIE_HTTPONLY = False
@@ -286,9 +290,7 @@ CF_ID=env("CF_ID")
 
 #Sentry -> log monitoring
 if not DEBUG:#개발 환경에서는 작동 안함
-    AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
-    SESSION_COOKIE_DOMAIN=".petmo.monster"
-    CSRF_COOKIE_DOMAIN=".petmo.monster"
+    
     sentry_sdk.init(
         dsn="https://e7a874aa712847f1a0659474973d022e@o4505280354975744.ingest.sentry.io/4505280371032064",
         integrations=[
