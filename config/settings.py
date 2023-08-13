@@ -71,15 +71,16 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'Set-Cookie',
 ]
+ACCOUNT_PASSWORD_INPUT_RENDER_VALUE = True  
+ACCOUNT_SESSION_REMEMBER = True  
+SESSION_COOKIE_AGE = 3600
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
 AUTH_COOKIE_DOMAIN="127.0.0.1"
 CSRF_COOKIE_SECURE=False
 AUTH_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = False
-
 CSRF_COOKIE_SAMESITE = "Lax"
 
-SESSION_COOKIE_HTTPONLY = False
-CSRF_COOKIE_HTTPONLY = False
 
 
 THIRD_PARTY_APPS=[
@@ -298,6 +299,3 @@ if not DEBUG:#개발 환경에서는 작동 안함
         traces_sample_rate=1.0,
         send_default_pii=True
     )
-#Session
-SESSION_COOKIE_AGE = 3600 # 세션 쿠키는 3600초(1시간) 동안 유지
-#SESSION_EXPIRE_AT_BROWSER_CLOSE = False : 브라우저 닫아도 세션 유지 안함 
