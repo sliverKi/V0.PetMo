@@ -12,6 +12,7 @@ import dj_database_url
 
 #로컬서버에서의 cors, csrftoken  설정
 #momo@gmail.com-momo : debug=True
+#test develop
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
