@@ -69,7 +69,6 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'Set-Cookie',
 ]
-AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
 
 SESSION_COOKIE_SECURE = False
 # SESSION_COOKIE_HTTPONLY = False
@@ -156,8 +155,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# DEBUG = 'RENDER' not in os.environ
-DEBUG=True
+DEBUG = 'RENDER' not in os.environ
+# DEBUG=True
 
 if DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
@@ -287,6 +286,7 @@ CF_ID=env("CF_ID")
 
 #Sentry -> log monitoring
 if not DEBUG:#개발 환경에서는 작동 안함
+    AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
     SESSION_COOKIE_DOMAIN=".petmo.monster"
     CSRF_COOKIE_DOMAIN=".petmo.monster"
     sentry_sdk.init(
