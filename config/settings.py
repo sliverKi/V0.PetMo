@@ -71,10 +71,8 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'Set-Cookie',
 ]
-# AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
-# SESSION_COOKIE_DOMAIN=".petmo.monster"
-# CSRF_COOKIE_DOMAIN=".petmo.monster"
 
+AUTH_COOKIE_DOMAIN="127.0.0.1"
 SESSION_COOKIE_SECURE = False
 # SESSION_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = False
