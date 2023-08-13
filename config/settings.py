@@ -21,15 +21,15 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
 
-
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "backend.petmo.monster",
-    "frontend.petmo.monster", 
-    "petmo.monster"
-]
-    
+#prod mode
+# ALLOWED_HOSTS = [
+#     "127.0.0.1",
+#     "localhost",
+#     "backend.petmo.monster",
+#     "frontend.petmo.monster", 
+#     "petmo.monster"
+# ]
+ALLOWED_HOSTS=["*"]
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -37,11 +37,11 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 
 
-# CORS_ORIGIN_ALLOW = True
 
 #CORS Setting
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS=True
+CORS_ORIGIN_ALLOW = True
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000", 
     "http://localhost:3000", 
@@ -71,9 +71,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'Set-Cookie',
 ]
-AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
-SESSION_COOKIE_DOMAIN=".petmo.monster"
-CSRF_COOKIE_DOMAIN=".petmo.monster"
+# AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
+# SESSION_COOKIE_DOMAIN=".petmo.monster"
+# CSRF_COOKIE_DOMAIN=".petmo.monster"
 
 SESSION_COOKIE_SECURE = False
 # SESSION_COOKIE_HTTPONLY = False
