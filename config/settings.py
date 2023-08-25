@@ -58,18 +58,18 @@ CSRF_TRUSTED_ORIGINS = [
     "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app", # : "front-address"
     "https://frontend.petmo.monster"
 ]
-# CORS_ALLOW_HEADERS = [
-#     'accept',
-#     'accept-encoding',
-#     'authorization',
-#     'content-type',
-#     'dnt',
-#     'origin',
-#     'user-agent',
-#     'x-csrftoken',
-#     'x-requested-with',
-#     'Set-Cookie',
-# ]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'Set-Cookie',
+]
 ACCOUNT_PASSWORD_INPUT_RENDER_VALUE = True  
 ACCOUNT_SESSION_REMEMBER = True  
 SESSION_COOKIE_AGE = 3600
@@ -81,13 +81,6 @@ SESSION_COOKIE_SECURE=False
 
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY=False
-SESSION_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SAMESITE = "Lax"
-
-# AUTH_COOKIE_SECURE = False
-# AUTH_COOKIE_DOMAIN="127.0.0.1"
-SESSION_COOKIE_DOMAIN="127.0.0.1"
-CSRF_COOKIE_DOMAIN="127.0.0.1"
 
 
 THIRD_PARTY_APPS=[
