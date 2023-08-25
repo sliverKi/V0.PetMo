@@ -17,5 +17,5 @@ urlpatterns=[
    
 
 ]
-# pagination 적용 OK
+# pagination 적용 확인해봐야 함. 
 # 게시글 : 10개 pagination, 댓글: 5개 pagination
