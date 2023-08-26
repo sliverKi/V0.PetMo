@@ -38,8 +38,6 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 #CORS Setting
 CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOW_ALL_ORIGINS=True
-
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000", 
     "http://localhost:3000", 
@@ -56,18 +54,18 @@ CSRF_TRUSTED_ORIGINS = [
     "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app", # : "front-address"
     "https://frontend.petmo.monster"
 ]
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-    'Set-Cookie',
-]
+# CORS_ALLOW_HEADERS = [
+#     'accept',
+#     'accept-encoding',
+#     'authorization',
+#     'content-type',
+#     'dnt',
+#     'origin',
+#     'user-agent',
+#     'x-csrftoken',
+#     'x-requested-with',
+#     'Set-Cookie',
+# ]
 
 AUTH_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
