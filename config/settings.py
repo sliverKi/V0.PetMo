@@ -54,18 +54,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app", # : "front-address"
     "https://frontend.petmo.monster"
 ]
-# CORS_ALLOW_HEADERS = [
-#     'accept',
-#     'accept-encoding',
-#     'authorization',
-#     'content-type',
-#     'dnt',
-#     'origin',
-#     'user-agent',
-#     'x-csrftoken',
-#     'x-requested-with',
-#     'Set-Cookie',
-# ]
 
 AUTH_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False

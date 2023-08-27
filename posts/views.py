@@ -126,16 +126,28 @@ class Posts(APIView):#게시글 조회
     def post(self, request):
         animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
         all_categoryType=[ "자유", "반려질문", "반려고수", "장소후기", "축하해요", "반려구조대"]
-        print("1: Posts")
-        boardAnimalTypes=request.data.get("boardAnimalTypes", animalTypes)
-        categoryType=request.data.get("categoryType", all_categoryType)
-        print("boardAnimalTypes", boardAnimalTypes) #"categoryType", categoryType)
         
-        filtered_posts = Post.objects.filter(
-            categoryType__categoryType=categoryType,
-            boardAnimalTypes__animalTypes__in=boardAnimalTypes
-        )
-        print("filtered_posts", filtered_posts)
+        boardAnimalTypes=request.data.get("boardAnimalTypes", [])
+        categoryType=request.data.get("categoryType", "")
+        print("boardAnimalTypes", boardAnimalTypes) #"categoryType", categoryType)
+        print("categoryType", categoryType)
+
+        filter_conditions = {}
+        if boardAnimalTypes:
+            if "전체" in boardAnimalTypes:
+                boardAnimalTypes = animalTypes
+            filter_conditions['boardAnimalTypes__animalTypes__in'] = boardAnimalTypes
+        if categoryType:
+            if categoryType == "전체":
+                categoryType=all_categoryType
+                filter_conditions['categoryType__categoryType__in'] = categoryType
+            else:
+                filter_conditions['categoryType__categoryType'] = categoryType
+
+
+        filtered_posts = Post.objects.filter(**filter_conditions)
+
+
         serializers=PostListSerializers(filtered_posts, many=True)
         if not filtered_posts.exists():
             print("2")
