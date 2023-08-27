@@ -123,7 +123,7 @@ class CommentDetail(APIView):# 댓글:  조회 생성, 수정, 삭제(ok)
 
 class Posts(APIView):#게시글 조회
     
-    permission_classes=[IsAuthenticated]
+    # permission_classes=[IsAuthenticated]
 
     def post(self, request):
         animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
@@ -166,7 +166,7 @@ class Posts(APIView):#게시글 조회
            
 class makePost(APIView):#image test 해보기 - with front 
     # authentication_classes=[SessionAuthentication]
-    permission_classes=[IsAuthenticated]
+    # permission_classes=[IsAuthenticated]
   
     def post(self, request):#게시글 생성    
     #input data:{"content":"test post", "boardAnimalTypes":["강아지"], "Image":[], "categoryType":"장소후기"} 
