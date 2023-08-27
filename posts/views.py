@@ -122,6 +122,8 @@ class CommentDetail(APIView):# 댓글:  조회 생성, 수정, 삭제(ok)
 
 
 class Posts(APIView):#게시글 조회
+    
+    permission_classes=[IsAuthenticated]
 
     def post(self, request):
         animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
@@ -164,9 +166,9 @@ class Posts(APIView):#게시글 조회
            
 class makePost(APIView):#image test 해보기 - with front 
     # authentication_classes=[SessionAuthentication]
-    # permission_classes=[IsAuthenticated]
+    permission_classes=[IsAuthenticated]
   
-    def post(self, request):#게시글 생성
+    def post(self, request):#게시글 생성    
     #input data:{"content":"test post", "boardAnimalTypes":["강아지"], "Image":[], "categoryType":"장소후기"} 
     #input data: {"content":"test post", "boardAnimalTypes":["새"], "Image":[{"img_path":"https://storage.enuri.info/pic_upload/knowbox/mobile_img/202201/2022010406253633544.jpg"}], "categoryType":"장소후기"}  
         serializer=PostSerializers(data=request.data)
