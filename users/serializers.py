@@ -158,6 +158,7 @@ class EnrollPetSerailzer(ModelSerializer):
         pets_data=validated_data.pop("pets", None) 
         user = self.context["request"].user
         
+        user.pets.clear()
         if len(pets_data)>3:
             raise ValidationError("최대 3마리까지 등록이 가능합니다.")
         
