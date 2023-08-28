@@ -126,6 +126,10 @@ class Posts(APIView):#게시글 조회
     permission_classes=[IsAuthenticated]
 
     def post(self, request):
+        user_address=request.user.user_address.regionDepth2
+        print("유저의 regionDepth2 필터링해야할 게시글", user_address )
+
+        
         animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
         all_categoryType=[ "자유", "반려질문", "반려고수", "장소후기", "축하해요", "반려구조대"]
         
@@ -135,6 +139,9 @@ class Posts(APIView):#게시글 조회
         print("categoryType", categoryType)
 
         filter_conditions = {}
+        
+        if user_address:
+            filter_conditions['user__user_address__regionDepth2'] = user_address
         if boardAnimalTypes:
             if "전체" in boardAnimalTypes:
                 boardAnimalTypes = animalTypes
@@ -146,11 +153,13 @@ class Posts(APIView):#게시글 조회
             else:
                 filter_conditions['categoryType__categoryType'] = categoryType
 
-
-        filtered_posts = Post.objects.filter(**filter_conditions)
-
+        print("filter_conditions", filter_conditions)
+        filtered_posts = Post.objects.filter(**filter_conditions).distinct()
+        print("filter_posts", filtered_posts)
 
         serializers=PostListSerializers(filtered_posts, many=True)
+        print("serializers", serializers)
+        
         if not filtered_posts.exists():
             print("2")
             return Response([], status=status.HTTP_200_OK)
