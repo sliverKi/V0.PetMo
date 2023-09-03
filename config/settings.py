@@ -282,3 +282,4 @@ if not DEBUG:#개발 환경에서는 작동 안함
         traces_sample_rate=1.0,
         send_default_pii=True
     )
+
