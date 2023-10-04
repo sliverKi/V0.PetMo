@@ -123,7 +123,7 @@ class CommentDetail(APIView):# 댓글:  조회 생성, 수정, 삭제(ok)
 
 class Posts(APIView):#게시글 조회
 
-    def post(self, request):
+    def get(self, request):
         animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
         all_categoryType=[ "자유", "반려질문", "반려고수", "장소후기", "축하해요", "반려구조대"]
         print("1: Posts")
