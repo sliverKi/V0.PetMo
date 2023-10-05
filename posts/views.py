@@ -125,7 +125,7 @@ class Posts(APIView):#게시글 조회
     
     permission_classes=[IsAuthenticated]
 
-    def get(self, request):
+    def post(self, request):
         user_address=request.user.user_address.regionDepth2
         print("유저의 regionDepth2 필터링해야할 게시글", user_address )
 
