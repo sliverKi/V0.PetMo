@@ -2,11 +2,6 @@ from django.db import models
 
 from common.models import CommonModel
 
-
-# 해야 할일 -> 다중이미지,
-# 댓글 pageniation 최대 5개까지 보여주기
-# 대댓글 3개
-# 좋아요, 조회수, 댓글수, 북마크 수
 class Post(CommonModel):
     user=models.ForeignKey(
         "users.User",
