@@ -30,17 +30,17 @@ class Post(CommonModel):
         editable=False,
     )
 
-    @property
-    def likeCount(self):
-        return self.postlike.count()
+    # @property
+    # def likeCount(self):
+    #     return self.postLike.count()
     
-    @property
-    def commentCount(self):
-        return self.post_comments.filter(parent_comment=None).count()
+    # @property
+    # def commentCount(self):
+    #     return self.post_comments.filter(parent_comment=None).count()
     
-    @property
-    def bookmarkCount(self):
-        return self.bookmarks.count()
+    # @property
+    # def bookmarkCount(self):
+    #     return self.bookmarks.count()
     
     def __str__(self):
         return f"{self.user} - {self.content}"

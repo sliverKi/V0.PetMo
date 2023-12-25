@@ -19,7 +19,7 @@ from .pagination import PaginaitionHandlerMixin
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db.models import Q
-
+from django.db.models import Count
 # #elasticsearch
 # import operator
 # from elasticsearch_dsl import Q as QQ
@@ -127,7 +127,7 @@ class Posts(APIView):#게시글 조회
 
     def get(self, request):
         user_address=request.user.user_address.regionDepth2
-        print("유저의 regionDepth2 필터링해야할 게시글", user_address )
+        # print("유저의 regionDepth2 필터링해야할 게시글", user_address )
 
         
         animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
@@ -154,7 +154,13 @@ class Posts(APIView):#게시글 조회
                 filter_conditions['categoryType__categoryType'] = categoryType
 
         print("filter_conditions", filter_conditions)
-        filtered_posts = Post.objects.filter(**filter_conditions).distinct()
+        #filtered_posts = Post.objects.filter(**filter_conditions).distinct()//47-> 30개 쿼리
+        filtered_posts = Post.objects.filter(**filter_conditions).annotate(#집계 최적화~> remove @property field 
+            commentCount=Count('post_comments'), 
+            likeCount=Count('postLike'),  
+            bookmarkCount=Count('bookmarks'),
+            filter=Q(post_comments__parent_comment=None),
+        ).select_related('user', 'user__user_address', 'categoryType').prefetch_related('boardAnimalTypes').distinct()
         print("filter_posts", filtered_posts)
 
         serializers=PostListSerializers(filtered_posts, many=True)

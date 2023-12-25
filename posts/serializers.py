@@ -167,7 +167,11 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
     boardAnimalTypes=PetsSerializers(many=True)
     categoryType=BoardSerializers()
     Image=ImageSerializers(many=True, read_only=True, required=False)
-    commentCount=serializers.SerializerMethodField()
+    #commentCount=serializers.SerializerMethodField()
+    commentCount = serializers.IntegerField(read_only=True)
+    likeCount = serializers.IntegerField(read_only=True)
+    bookmarkCount = serializers.IntegerField(read_only=True)
+
     createdDate = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
     updatedDate = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
 
@@ -183,9 +187,9 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
             "createdDate", 
             "updatedDate",
             "viewCount",#조회수
-            "likeCount",#좋아요 수 
-            "commentCount",#댓글 수 (대댓글 미포함)
-            "bookmarkCount",#북마크 수
+            "likeCount",#좋아요수 
+            "commentCount",#댓글수 (대댓글 미포함)
+            "bookmarkCount",#북마크수
         )
     def get_images(self, post):
         images = post.images.all()

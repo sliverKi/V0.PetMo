@@ -10,7 +10,8 @@ class Pet(models.Model):
         파충류="파충류","파충류"
         토끼="토끼","토끼"
         새="새", "새"
-        other="기타","기타"
+        other="기타","기타",
+        전체="전체", "전체"
     
     animalTypes=models.CharField(
         max_length=255,

@@ -7,7 +7,7 @@ from datetime import timedelta
 import environ
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
-from config.logger import CustomisedJSONFormatter
+#from config.logger import CustomisedJSONFormatter
 import dj_database_url
 
 #로컬서버에서의 cors, csrftoken  설정
@@ -143,7 +143,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 DEBUG = 'RENDER' not in os.environ
-#DEBUG=True
+# DEBUG=True
 
 if DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
