@@ -280,8 +280,8 @@ STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 AWS_S3_SECURE_URLS = False       # use http instead of https
 AWS_QUERYSTRING_AUTH = False     # don't add complex authentication-related query parameters for requests
 
-AWS_S3_ACCESS_KEY_ID = 'AKIA4FRP3SRHTSUZAKW5'
-AWS_S3_SECRET_ACCESS_KEY = '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'
+AWS_S3_ACCESS_KEY_ID = env("AWS_S3_ACCESS_KEY_ID")
+AWS_S3_SECRET_ACCESS_KEY = env("AWS_S3_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = 'petmobucket'
 AWS_S3_REGION_NAME = 'ap-northeast-2'
 
