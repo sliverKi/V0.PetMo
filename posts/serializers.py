@@ -166,7 +166,8 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
     user=SimpleUserSerializer(read_only=True)
     boardAnimalTypes=PetsSerializers(many=True)
     categoryType=BoardSerializers()
-    Image=ImageSerializers(many=True, read_only=True, required=False)
+    #images=ImageSerializers(many=True, read_only=True, required=False)
+    # images = serializers.SerializerMethodField()
     #commentCount=serializers.SerializerMethodField()
     commentCount = serializers.IntegerField(read_only=True)
     likeCount = serializers.IntegerField(read_only=True)
@@ -183,7 +184,7 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
             "boardAnimalTypes",
             "user",
             "content",
-            "Image",
+            "postImage",
             "createdDate", 
             "updatedDate",
             "viewCount",#조회수
@@ -191,11 +192,18 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
             "commentCount",#댓글수 (대댓글 미포함)
             "bookmarkCount",#북마크수
         )
-    def get_images(self, post):
-        images = post.images.all()
-        if images.exists():
-            return ImageSerializers(images.first(), context=self.context).data   
-        return [] 
+    # def get_images(self, post):
+    #     images = post.images.all()
+    #     if images.exists():
+    #         return ImageSerializers(images.first(), context=self.context).data   
+    #     return [] 
+    # def get_images(self, post):
+    # # 이미 로드된 이미지 데이터를 사용
+    #     images = getattr(post, 'images', None)
+    #     if images:
+    #         return ImageSerializers(images, many=True, context=self.context).data
+    #     return []
+
     def get_commentCount(self, obj):
         return obj.commentCount
     

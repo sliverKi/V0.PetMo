@@ -1,4 +1,4 @@
-import requests
+import requests, boto3
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -16,20 +16,25 @@ from rest_framework.exceptions import ParseError, NotFound, PermissionDenied, Va
 from rest_framework.permissions import IsAuthenticated
 
 
-from .models import User, Address
+from .models import User
+from addresses.models import Address
 from . import serializers
 from .serializers import (
     
     SimpleUserSerializer, PrivateUserSerializers, 
     AddressSerializer, AddressSerializers, UserSerializers,
-    EnrollPetSerailzer, TinyUserSerializers
+    EnrollPetSerailzer, TinyUserSerializers,
+    UserProfileUploadSerializer
     )
 from pets.models import Pet
 from posts.models import Post, Comment
 
 from posts.serializers import PostDetailSerializers,PostListSerializers, CommentSerializers, ReplySerializers
 from urllib.request import urlopen
-import json
+import json, uuid
+from config.settings import AWS_S3_ACCESS_KEY_ID, AWS_S3_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
+from django.core.files import File
+from django.core.files.base import ContentFile
 #start images: docker run -p 8000:8000 petmo-back
 class StaticInfo(APIView):
     permission_classes = [IsAuthenticated]
@@ -470,7 +475,30 @@ class Quit(APIView):
         
 
 
-
-
-
-
+class UserProfileUploadView(APIView):
+    def post(self, request):
+        s3 = boto3.resource(
+            's3',
+            aws_access_key_id=AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_S3_SECRET_ACCESS_KEY,
+        )
+        serializer = UserProfileUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            profile = serializer.validated_data['profile']
+            response = requests.get(profile)
+            if response.status_code == 200:# 이미지 파일을 다운로드하여 파일 객체로 변환
+                unique_filename = str(uuid.uuid4()) + '.jpg'
+                profile_image = File(response.content, name=unique_filename)
+                # S3 버킷에 파일 객체 업로드
+                s3.Object(AWS_STORAGE_BUCKET_NAME, 'profiles/' + profile_image.name).put(Body=profile)
+                
+                profile_saved_url = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/profiles/{profile_image.name}"
+                
+                user=request.user
+                user.profile = profile_saved_url
+                user.save()
+                
+                return Response({'message': '이미지가 업로드되었습니다.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': '이미지를 다운로드할 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -27,7 +27,7 @@ urlpatterns = [
     path("api/v2/auths/", include("auths.urls")),
     path("api/v2/bookmarks/", include("bookmarks.urls")),
     path("api/v2/likes/", include("likes.urls")),
-
+    path("api/v2/images/", include("images.urls")),
 
     path(
         "swagger/", 

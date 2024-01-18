@@ -27,14 +27,7 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
-    # address=models.ForeignKey(
-    #     "users.Address",
-    #     max_length=255,
-    #     null=True,
-    #     blank=True, 
-    #     on_delete=models.SET_NULL,
-    #     related_name="users"
-    # )
+    
     hasPet=models.BooleanField(default=False)
     pets=models.ManyToManyField(
         "pets.Pet",
@@ -66,18 +59,3 @@ class User(AbstractUser):
     def __str__(self) -> str:
         return self.username
 
-class Address(models.Model):
-   
-    user=models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="user_address"
-    )
-    addressName=models.CharField(max_length=255,)
-
-    regionDepth1=models.CharField(max_length=255,default="")
-    regionDepth2=models.CharField(max_length=255,default="")
-    regionDepth3=models.CharField(max_length=255,default="", blank=True, null=True)
-    
-    def __str__(self) -> str:
-        return self.addressName 

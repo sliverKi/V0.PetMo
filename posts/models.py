@@ -29,7 +29,12 @@ class Post(CommonModel):
         default=0,
         editable=False,
     )
+    postImage=models.URLField(
+        blank=True, 
+        null=True, 
+    )
 
+    
     # @property
     # def likeCount(self):
     #     return self.postLike.count()

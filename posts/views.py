@@ -125,13 +125,12 @@ class Posts(APIView):#게시글 조회
     
     permission_classes=[IsAuthenticated]
 
-    def post(self, request):
+    def get(self, request):#local에서는 get으로 testing / prod에는 post로 변경할 것.
         user_address=request.user.user_address.regionDepth2
         # print("유저의 regionDepth2 필터링해야할 게시글", user_address )
 
-        
-        animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
-        all_categoryType=[ "자유", "반려질문", "반려고수", "장소후기", "축하해요", "반려구조대"]
+        # animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
+        # all_categoryType=[ "자유", "반려질문", "반려고수", "장소후기", "축하해요", "반려구조대"]
         
         boardAnimalTypes=request.data.get("boardAnimalTypes", [])
         categoryType=request.data.get("categoryType", "")
@@ -142,24 +141,27 @@ class Posts(APIView):#게시글 조회
         
         if user_address:
             filter_conditions['user__user_address__regionDepth2'] = user_address
-        if boardAnimalTypes:
-            if "전체" in boardAnimalTypes:
-                boardAnimalTypes = animalTypes
+        if boardAnimalTypes and "전체" not in boardAnimalTypes:
             filter_conditions['boardAnimalTypes__animalTypes__in'] = boardAnimalTypes
-        if categoryType:
-            if categoryType == "전체":
-                categoryType=all_categoryType
-                filter_conditions['categoryType__categoryType__in'] = categoryType
-            else:
-                filter_conditions['categoryType__categoryType'] = categoryType
+        if categoryType and categoryType != "전체":
+            filter_conditions['categoryType__categoryType'] = categoryType
+        # if boardAnimalTypes:
+        #     if "전체" in boardAnimalTypes:
+        #         boardAnimalTypes = animalTypes
+        #     filter_conditions['boardAnimalTypes__animalTypes__in'] = boardAnimalTypes
+        # if categoryType:
+        #     if categoryType == "전체":
+        #         categoryType=all_categoryType
+        #         filter_conditions['categoryType__categoryType__in'] = categoryType
+        #     else:
+        #         filter_conditions['categoryType__categoryType'] = categoryType
 
         print("filter_conditions", filter_conditions)
-        #filtered_posts = Post.objects.filter(**filter_conditions).distinct()//47-> 30개 쿼리
+        # filtered_posts = Post.objects.filter(**filter_conditions).distinct()#47-> 30개 쿼리~> 14쿼리 ~> 4개쿼리
         filtered_posts = Post.objects.filter(**filter_conditions).annotate(#집계 최적화~> remove @property field 
-            commentCount=Count('post_comments'), 
-            likeCount=Count('postLike'),  
-            bookmarkCount=Count('bookmarks'),
-            filter=Q(post_comments__parent_comment=None),
+            commentCount=Count('post_comments',  filter=Q(post_comments__parent_comment=None), distinct=True), 
+            likeCount=Count('postLike', distinct=True),  
+            bookmarkCount=Count('bookmarks', distinct=True),
         ).select_related('user', 'user__user_address', 'categoryType').prefetch_related('boardAnimalTypes').distinct()
         print("filter_posts", filtered_posts)
 

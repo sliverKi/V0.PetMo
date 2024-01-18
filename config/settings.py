@@ -70,24 +70,26 @@ THIRD_PARTY_APPS=[
     # "rest_framework_simplejwt.token_blacklist",
     # "dj_rest_auth",
     # "dj_rest_auth.registration",
-    'rest_framework',
     # "rest_framework.authtoken",
+    'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
     'django_seed',
     'whitenoise.runserver_nostatic',
     'debug_toolbar',
+    'storages',
     
 ]
 CUSTOM_APPS=[
+    "auths.apps.AuthsConfig",
+    "addresses.apps.AddressesConfig",
     "users.apps.UsersConfig",
     "pets.apps.PetsConfig",
     "categories.apps.CategoriesConfig",
     "posts.apps.PostsConfig",
     "common.apps.CommonConfig",
     "images.apps.ImagesConfig",
-    "auths.apps.AuthsConfig",
     "bookmarks.apps.BookmarksConfig",
     "likes.apps.LikesConfig",
 ]
@@ -100,7 +102,6 @@ SYSTEM_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
 ]
 SITE_ID = 1
 
@@ -142,8 +143,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DEBUG = 'RENDER' not in os.environ
-# DEBUG=True
+# DEBUG = 'RENDER' not in os.environ
+DEBUG=True
 
 if DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
@@ -234,6 +235,7 @@ APP_ID = 'petmo_elk'
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
+DEFAULT_CHARSET = 'utf-8'
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Seoul'
@@ -267,9 +269,23 @@ AUTH_USER_MODEL = "users.User"
 #External API KEY
 KAKAO_API_KEY=env("KAKAO_API_KEY")
 IP_GEOAPI=env("IP_GEOAPI")
-#Cloudflare
+
+#CloudFlare
 CF_TOKEN=env("CF_TOKEN")
 CF_ID=env("CF_ID")
+
+#S3
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_SECURE_URLS = False       # use http instead of https
+AWS_QUERYSTRING_AUTH = False     # don't add complex authentication-related query parameters for requests
+
+AWS_S3_ACCESS_KEY_ID = 'AKIA4FRP3SRHTSUZAKW5'
+AWS_S3_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'petmobucket'
+AWS_S3_REGION_NAME = 'ap-northeast-2'
+
+STATIC_URL = 'https://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
 
 #Sentry -> log monitoring
 if not DEBUG:#개발 환경에서는 작동 안함

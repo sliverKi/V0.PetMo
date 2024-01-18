@@ -12,7 +12,9 @@ urlpatterns=[
     path("MY/Comment/<int:pk>", views.MyCommentDetail.as_view()), #댓글 조회 하면 게시글을 보여줄 수 있게 변경해야 함 [수정 필요]
     
     path("my-info", views.MyInfo.as_view()), #user profile 수정 [GET, PUT](ok) 
-    
+    path('upload-profile/', views.UserProfileUploadView.as_view(), name='upload-profile'),
+
+
     path("address/", views.getAddress.as_view()),#[POST, PUT, DELETE] 사용자가 등록한 동네 조회, 삭제, POST] +)+)동네 재설정 추가, 동네 삭제[PUT]
     path("address/get/ip", views.getIP.as_view()), #user 현 위치의 동네 조회[GET]
     path("address/get/query", views.getQuery.as_view()), #검색어 기반 동네 조회 [GET]

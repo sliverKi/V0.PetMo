@@ -3,7 +3,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from rest_framework.exceptions import ParseError,ValidationError
-from .models import User, Address
+from .models import User
+from addresses.models import Address
 from pets.serializers import PetsSerializers
 from pets.models import Pet
 class TinyUserSerializers(ModelSerializer):#내동네 설정에서 이용
@@ -175,3 +176,11 @@ class EnrollPetSerailzer(ModelSerializer):
 
 
 
+class UserProfileUploadSerializer(ModelSerializer):
+    class Meta:
+        model=User
+        fields=("profile",)
+    def update(self, instance, validated_data):
+        instance.profile = validated_data["profile"]
+        instance.save()
+        return instance
