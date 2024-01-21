@@ -29,6 +29,7 @@ urlpatterns = [
     path("api/v2/likes/", include("likes.urls")),
     path("api/v2/images/", include("images.urls")),
     path("api/v2/address/", include("addresses.urls")),
+    path("api/v2/search/", include("search.urls")),
     path(
         "swagger/", 
         schema_view.with_ui("swagger", cache_timeout=0), 

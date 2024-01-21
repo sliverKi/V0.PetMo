@@ -1,8 +1,8 @@
-import requests, json
+import requests, json, time, redis
 from django.shortcuts import render
 from users.models import User
 from .models import Address
-from config.settings import KAKAO_API_KEY, IP_GEOAPI
+from config.settings import KAKAO_API_KEY, IP_GEOAPI, REDIS_HOST, REDIS_PORT
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,6 +12,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from users.serializers import AddressSerializer, AddressSerializers
 from urllib.request import urlopen
+from config.searchlimit import searchRateLimiterMiddleware
+
 # Create your views here.
 class getAddress(APIView):
     # permission_classes=[IsAuthenticated]#인가된 사용자만 허용
@@ -156,29 +158,33 @@ class getQuery(APIView):#검색어 입력 기반 동네 검색
     # permission_classes=[IsAuthenticated]#인가된 사용자만 허용
  
     def get(self, request):
-        
-        # 1. 검색어 예외 처리 할 것 
-        # 1-1. 검색어의 길이가 2 미만 인 경우 예외 발생 
-        # 1-2. 검색어가 공백인 경우 에러 발생  
-        # 1-3. 검색한 주소가 없는 경우 예외 발생 
-           
+        start_time = time.time()
         search_query=request.GET.get('q')
-        # print(search_query)
+        #print("ㅂ: ",search_query)
         if not search_query and len(search_query)<2:
             raise ValidationError("error: 검색 키워드를 2자 이상으로 입력해 주세요.")
-        # if :
-        #     raise ValidationError("error: 검색할 키워드를 입력해 주세요.")
-        
+
         search_url='https://dapi.kakao.com/v2/local/search/address.json'
         headers={'Authorization': f'KakaoAK {KAKAO_API_KEY}'}
         params={'query': search_query}
        
         response=requests.get(search_url, headers=headers, params=params)
-        print("res", response)
+        #print("res", response)
         datas=response.json()
         
         if 'documents' not in datas or not datas['documents']:
             raise ValidationError("error: 입력하신 주소가 존재하지 않습니다.")
+        
+        # Redis에 사용자가 입력한 검색어 저장
+        user_name = request.user.username
+        redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+        user_search_key = f"user_search_history:{user_name}"
+        redis_client.set(user_search_key, search_query)
+        
+        search_history = redis_client.get(f'user_search_history:{user_name}')
+        decoded_search_history = search_history.decode('utf-8')
+        print("decode_search_history: ", decoded_search_history)#redis-cli에서는 encoding된 값으로 확인되어져, terminal에서 decode된 값 확인하기 위함  
+
         results=[]
         for document in datas['documents']:
             result={
@@ -188,4 +194,9 @@ class getQuery(APIView):#검색어 입력 기반 동네 검색
                 "region_3depth_name": document['address']['region_3depth_name'],
             }
             results.append(result)
+        
+        end_time = time.time()
+        elapsed_time = end_time-start_time#0.18초
+
+        results.append(elapsed_time)
         return Response(results, status=status.HTTP_200_OK)

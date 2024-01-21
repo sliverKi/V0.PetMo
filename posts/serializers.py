@@ -17,7 +17,8 @@ from pets.models import Pet
 from pets.serializers import PetsSerializers
 from likes.models import PostLike
 from bookmarks.models import Bookmark
-# from search.documents import PostDocument
+from search.documents import PostDocument
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 import sys
 
 from django.db import transaction
@@ -349,26 +350,26 @@ class PostDetailSerializers(ModelSerializer):#image 나열
 
 
 #<use elasticsearh>
-# class PostSearchSerializer(DocumentSerializer):
-#     user=SimpleUserSerializer(read_only=True)
-#     boardAnimalTypes=PetsSerializers(many=True)
-#     categoryType=BoardSerializers()
-#     Image=ImageSerializers(many=True, read_only=True, required=False)
+class PostSearchSerializer(DocumentSerializer):
+    user=SimpleUserSerializer(read_only=True)
+    boardAnimalTypes=PetsSerializers(many=True)
+    categoryType=BoardSerializers()
+    Image=ImageSerializers(many=True, read_only=True, required=False)
 
-#     class Meta:
-#         model=Post
-#         document=PostDocument
-#         fields=(
-#             "id",
-#             "categoryType",
-#             "boardAnimalTypes",
-#             "user",
-#             "content",
-#             "Image",
-#             "createdDate", 
-#             "updatedDate",
-#             "viewCount",
-#             "likeCount",
-#             "commentCount",
-#             "bookmarkCount",
-#         )
+    class Meta:
+        model=Post
+        document=PostDocument
+        fields=(
+            "id",
+            "categoryType",
+            "boardAnimalTypes",
+            "user",
+            "content",
+            "Image",
+            "createdDate", 
+            "updatedDate",
+            "viewCount",
+            "likeCount",
+            "commentCount",
+            "bookmarkCount",
+        )

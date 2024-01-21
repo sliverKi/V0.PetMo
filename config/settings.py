@@ -76,6 +76,8 @@ THIRD_PARTY_APPS=[
     'corsheaders',
     'drf_yasg',
     'django_seed',
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
     'whitenoise.runserver_nostatic',
     'debug_toolbar',
     'storages',
@@ -92,6 +94,7 @@ CUSTOM_APPS=[
     "images.apps.ImagesConfig",
     "bookmarks.apps.BookmarksConfig",
     "likes.apps.LikesConfig",
+    "search.apps.SearchConfig",
 ]
 
 SYSTEM_APPS = [
@@ -121,6 +124,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    #'config.search.searchRateLimiterMiddleware',# 검색어 관리 및 검색 횟수 제한 미들웨어 추가 ~> 모든 페이지에 적용되는 문제 발생 ~> 특정 url에만 적용하기 위해 옮김
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -181,6 +185,12 @@ REST_FRAMEWORK={
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
         'PAGE_SIZE': 10,
+}
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        "hosts": "elasticsearch:9200"
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -270,13 +280,14 @@ AUTH_USER_MODEL = "users.User"
 KAKAO_API_KEY=env("KAKAO_API_KEY")
 IP_GEOAPI=env("IP_GEOAPI")
 
-#CloudFlare
+#CloudFlare->delete
 CF_TOKEN=env("CF_TOKEN")
 CF_ID=env("CF_ID")
 
 #S3
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
 AWS_S3_SECURE_URLS = False       # use http instead of https
 AWS_QUERYSTRING_AUTH = False     # don't add complex authentication-related query parameters for requests
 
@@ -286,6 +297,19 @@ AWS_STORAGE_BUCKET_NAME = 'petmobucket'
 AWS_S3_REGION_NAME = 'ap-northeast-2'
 
 STATIC_URL = 'https://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
+
+#Redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
 
 #Sentry -> log monitoring
 if not DEBUG:#개발 환경에서는 작동 안함
