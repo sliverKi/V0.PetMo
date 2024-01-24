@@ -88,13 +88,13 @@ class getAddress(APIView):
 
 class getIP(APIView):#ip기반 현위치 탐색
     permission_classes=[IsAuthenticated]#인가된 사용자만 허용
-    
+
     def get_clientIP(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            print("ip주소들 ", x_forwarded_for)
+            # print("ip주소들 ", x_forwarded_for)
             client_ip_address = x_forwarded_for.split(',')[0].strip()
-            print("use XFF, client IP address: ", client_ip_address)
+            # print("use XFF, client IP address: ", client_ip_address)
         else:
             client_ip_address  = request.META.get('REMOTE_ADDR')
             print("use REMOTE, client IP address", client_ip_address)
