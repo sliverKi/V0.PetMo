@@ -176,12 +176,12 @@ class getQuery(APIView):#검색어 입력 기반 동네 검색
             raise ValidationError("error: 입력하신 주소가 존재하지 않습니다.")
         
         # Redis에 사용자가 입력한 검색어 저장
-        user_name = request.user.username
+        user_pk = request.user.pk
         redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
-        user_search_key = f"user_search_history:{user_name}"
+        user_search_key = f"user_search_history:{user_pk}"
         redis_client.set(user_search_key, search_query)
         
-        search_history = redis_client.get(f'user_search_history:{user_name}')
+        search_history = redis_client.get(f'user_search_history:{user_pk}')
         decoded_search_history = search_history.decode('utf-8')
         print("decode_search_history: ", decoded_search_history)#redis-cli에서는 encoding된 값으로 확인되어져, terminal에서 decode된 값 확인하기 위함  
 
