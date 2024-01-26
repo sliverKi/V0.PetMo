@@ -126,21 +126,14 @@ class Posts(APIView):#게시글 조회
     permission_classes=[IsAuthenticated]
 
     def get(self, request):#local에서는 get으로 testing / prod에는 post로 변경할 것.
-        user_address=request.user.user_address.regionDepth2
-        # print("유저의 regionDepth2 필터링해야할 게시글", user_address )
-
-        # animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
-        # all_categoryType=[ "자유", "반려질문", "반려고수", "장소후기", "축하해요", "반려구조대"]
-        
+        user_address = request.user.user_address.regionDepth2 if request.user.user_address else '연수구'
         boardAnimalTypes=request.data.get("boardAnimalTypes", [])
         categoryType=request.data.get("categoryType", "")
-        print("boardAnimalTypes", boardAnimalTypes) #"categoryType", categoryType)
-        print("categoryType", categoryType)
-
-        filter_conditions = {}
         
-        if user_address:
-            filter_conditions['user__user_address__regionDepth2'] = user_address
+        # filter_conditions = {}
+        # if user_address:
+        #     filter_conditions['user__user_address__regionDepth2'] = user_address
+        filter_conditions = {'user__user_address__regionDepth2': user_address}
         if boardAnimalTypes and "전체" not in boardAnimalTypes:
             filter_conditions['boardAnimalTypes__animalTypes__in'] = boardAnimalTypes
         if categoryType and categoryType != "전체":
@@ -156,23 +149,22 @@ class Posts(APIView):#게시글 조회
         #     else:
         #         filter_conditions['categoryType__categoryType'] = categoryType
 
-        print("filter_conditions", filter_conditions)
+        # print("filter_conditions", filter_conditions)
         # filtered_posts = Post.objects.filter(**filter_conditions).distinct()#47-> 30개 쿼리~> 14쿼리 ~> 4개쿼리
         filtered_posts = Post.objects.filter(**filter_conditions).annotate(#집계 최적화~> remove @property field 
             commentCount=Count('post_comments',  filter=Q(post_comments__parent_comment=None), distinct=True), 
             likeCount=Count('postLike', distinct=True),  
             bookmarkCount=Count('bookmarks', distinct=True),
         ).select_related('user', 'user__user_address', 'categoryType').prefetch_related('boardAnimalTypes').distinct()
+        
+        
         print("filter_posts", filtered_posts)
 
         serializers=PostListSerializers(filtered_posts, many=True)
-        print("serializers", serializers)
         
-        if not filtered_posts.exists():
-            print("2")
-            return Response([], status=status.HTTP_200_OK)
-        print("4")
-        return Response( serializers.data, status=status.HTTP_200_OK)
+        # 응답 반환
+        return Response(serializers.data, status=status.HTTP_200_OK if filtered_posts.exists() else status.HTTP_204_NO_CONTENT)
+        
        
     
     # {  "boardAnimalTypes":["강아지"], 

@@ -6,6 +6,7 @@ class Address(models.Model):
     user=models.OneToOneField(
         User,
         on_delete=models.CASCADE,
+        null=True,
         related_name="user_address"
     )
     addressName=models.CharField(max_length=255,)

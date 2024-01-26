@@ -1,4 +1,4 @@
-import requests, json, time, redis
+import requests, json, time, redis, re
 from django.shortcuts import render
 from users.models import User
 from .models import Address
@@ -15,6 +15,18 @@ from urllib.request import urlopen
 from config.searchlimit import searchRateLimiterMiddleware
 
 # Create your views here.
+
+def split_address(addressName):
+    
+    parts = re.split(r'[ ,\-*!@#$%^&\(\)=~`?:;"{}\|\+\/<>]+', addressName)
+    # parts = addressName.split()  # 공백을 기준으로 주소를 분리
+    
+    regionDepth1 = parts[0] if len(parts) > 0 else ''
+    regionDepth2 = parts[1] if len(parts) > 1 else ''
+    regionDepth3 = ' '.join(parts[2:]) if len(parts) > 2 else ''
+    addressName=' '.join(parts)
+    
+    return regionDepth1, regionDepth2, regionDepth3, addressName
 class getAddress(APIView):
     # permission_classes=[IsAuthenticated]#인가된 사용자만 허용
     def get_object(self, pk):
@@ -34,23 +46,35 @@ class getAddress(APIView):
         else:
             return Response({"message":"사용자가 아직 내동네 설정을 하지 않았습니다."}, status=status.HTTP_404_NOT_FOUND)
     
-
+    
+    #post:{"addressName": "data"}
     def post(self, request):#주소 등록 
-        print("post Start")
+        print("address-post Start")
         try:
             user=request.user
+            print("user:", user)
             serializer = AddressSerializers(
                 data=request.data, 
                 context={'user':user}#user 객체를 참조하기 위함. ~> serializer에서 사용자 정보가 필요하기 때문
             )
             if serializer.is_valid():
-                address=serializer.save(user=request.user)
-                address.addressName=request.data.get('addressName')
-                user.user_address=address
+                address = serializer.save(user=request.user)
+                # 주소 분리 및 저장
+                addressName = request.data.get('addressName', '')
+                regionDepth1, regionDepth2, regionDepth3, addressName = split_address(addressName)
+                #주소 저장
+                address.regionDepth1 = regionDepth1
+                address.regionDepth2 = regionDepth2
+                address.regionDepth3 = regionDepth3
+                address.addressName = addressName
+                address.save()
+                # 사용자에게 주소 연결
+                user.user_address = address
                 user.save()
-                serializer=AddressSerializer(address)
-                
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+                # 업데이트된 주소 정보로 다시 시리얼라이즈
+                updated_serializer = AddressSerializer(address)
+                return Response(updated_serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": "Failed to Save Address Data."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

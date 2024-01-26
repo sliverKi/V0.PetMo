@@ -1,9 +1,16 @@
-from django_elasticsearch_dsl import Document, fields
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl.connections import connections
+from elasticsearch_dsl import analyzer
+from django_elasticsearch_dsl import Document as dslDocument, fields
 from django_elasticsearch_dsl.registries import registry
 from posts.models import Post
 
+nori_analyzer = analyzer(
+    'nori_tokenizer',
+    tokenizer = 'nori_tokenizer',
+)
 @registry.register_document
-class PostDocument(Document):
+class PostDocument(dslDocument):
     user=fields.ObjectField(
         properties={
             'username':fields.TextField(),
@@ -27,6 +34,7 @@ class PostDocument(Document):
             "img_path":fields.TextField()
         }
     )
+    
     createdDate=fields.DateField()
     updatedDate=fields.DateField()
     viewCount=fields.IntegerField()
@@ -34,7 +42,7 @@ class PostDocument(Document):
     commentCount=fields.IntegerField()
     bookmarkCount=fields.IntegerField()
     class Index:
-        name="post"
+        name="search_post_logs"
     class Django:
         model=Post
         fields=["id", "content"]

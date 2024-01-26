@@ -86,7 +86,7 @@ class PostSerializers(ModelSerializer):#댓글 없음.
     boardAnimalTypes=PetsSerializers(many=True, read_only=True)
     user=TinyUserSerializers(read_only=True)
     Image=ImageSerializers(many=True, read_only=True, required=False)
-    likeCheck=serializers.SerializerMethodField()#현재 사용자가 게시글을 좋아요 했는지를 여부를 나타냄
+    # likeCheck=serializers.SerializerMethodField()#현재 사용자가 게시글을 좋아요 했는지를 여부를 나타냄
     
     class Meta:
         model=Post
@@ -97,15 +97,15 @@ class PostSerializers(ModelSerializer):#댓글 없음.
             "user",
             "content",
             "Image",#ImageModel의 related_name 이용 
-            "likeCount",
-            "likeCheck",
+            # "likeCount",
+            # "likeCheck",
         )
 
-    def get_likeCheck(self, data):
-        request=self.context.get("request")
-        if request and request.user.is_authenticated:
-            return PostLike.objects.filter(user=request.user, post=data).exists()
-        return False
+    # def get_likeCheck(self, data):
+    #     request=self.context.get("request")
+    #     if request and request.user.is_authenticated:
+    #         return PostLike.objects.filter(user=request.user, post=data).exists()
+    #     return False
 
     
     def create(self, validated_data):  

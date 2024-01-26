@@ -5,8 +5,8 @@ import os
 from pathlib import Path
 from datetime import timedelta
 import environ
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
+# import sentry_sdk
+# from sentry_sdk.integrations.django import DjangoIntegration
 #from config.logger import CustomisedJSONFormatter
 import dj_database_url
 

@@ -12,17 +12,16 @@ class SearchPost(APIView, PageNumberPagination):
     search_document=PostDocument
 
     def log_search_query(self, query):
-        es = Elasticsearch([{'host': 'elasticsearch', 'port': 9200}])
+        es = Elasticsearch([{'host': 'localhost', 'port': 9200}])#개발환경인경우 'host'를 localhost로 변경, prod-mode: 'host':'elasticsearch'
         log_body = {
             "query": query,
             "timestamp": datetime.utcnow()
         }
-        es.index(index="search_logs", doc_type="_doc", body=log_body)
+        es.index(index="search_post_logs", doc_type="_doc", body=log_body)
 
    
     def get(self, request, query=None):
         try:
-            
             self.log_search_query(query)
             print(query)
 
