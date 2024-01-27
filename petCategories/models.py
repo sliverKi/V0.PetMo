@@ -1,7 +1,6 @@
 from django.db import models
 
 class Pet(models.Model):
-    
     class AnimalSpeciesChoices(models.TextChoices):
         강아지="강아지", "강아지"
         고양이="고양이","고양이"

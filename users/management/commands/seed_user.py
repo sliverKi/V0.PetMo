@@ -6,8 +6,8 @@ from django_seed import Seed
 from users.models import User, Address
 from posts.models import Post
 from images.models import Image
-from pets.models import Pet
-from categories.models import Category
+from petCategories.models import Pet
+from boardCategories.models import Category
 
 class Command(BaseCommand):
     help="generate random data"

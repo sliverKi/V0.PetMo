@@ -1,7 +1,7 @@
 #06.01
 #vscode에는 현재 베포 서버용 settings가 설정되어 있음
 #github애는 현재 개발 서버용 settings가 설정되어 있음
-import os
+import os, my_DB
 from pathlib import Path
 from datetime import timedelta
 import environ
@@ -87,11 +87,10 @@ CUSTOM_APPS=[
     "auths.apps.AuthsConfig",
     "addresses.apps.AddressesConfig",
     "users.apps.UsersConfig",
-    "pets.apps.PetsConfig",
-    "categories.apps.CategoriesConfig",
+    "petCategories.apps.petCategoriesConfig",
+    "boardCategories.apps.boardCategoriesConfig",
     "posts.apps.PostsConfig",
     "common.apps.CommonConfig",
-    "images.apps.ImagesConfig",
     "bookmarks.apps.BookmarksConfig",
     "likes.apps.LikesConfig",
     "search.apps.SearchConfig",
@@ -153,12 +152,13 @@ DEBUG=True
 if DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    DATABASES = {
-        'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR/ 'db.sqlite3',
-            }
-    }
+    DATABASES = my_DB.DATABASES
+    # DATABASES = {
+    #     'default': {
+    #             'ENGINE': 'django.db.backends.sqlite3',
+    #             'NAME': BASE_DIR/ 'db.sqlite3',
+    #         }
+    # }
 else:
      DATABASES = {
         'default': dj_database_url.config(
@@ -324,17 +324,33 @@ else:
         }
     }
     REDIS_HOST = "redis"
-    REDIS_PORT = 6379
+#콘솔창에서 SQL 쿼리 보기
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+    },
+}
 
 #Sentry -> log monitoring
-if not DEBUG:#개발 환경에서는 작동 안함
+# if not DEBUG:#개발 환경에서는 작동 안함
     
-    sentry_sdk.init(
-        dsn="https://e7a874aa712847f1a0659474973d022e@o4505280354975744.ingest.sentry.io/4505280371032064",
-        integrations=[
-            DjangoIntegration(),
-        ],
-        traces_sample_rate=1.0,
-        send_default_pii=True
-    )
+#     sentry_sdk.init(
+#         dsn="https://e7a874aa712847f1a0659474973d022e@o4505280354975744.ingest.sentry.io/4505280371032064",
+#         integrations=[
+#             DjangoIntegration(),
+#         ],
+#         traces_sample_rate=1.0,
+#         send_default_pii=True
+#     )
 

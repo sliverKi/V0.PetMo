@@ -5,11 +5,11 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.exceptions import ParseError,ValidationError
 from .models import User
 from addresses.models import Address
-from pets.serializers import PetsSerializers
-from pets.models import Pet
+from petCategories.serializers import PetCategorySerializer
+from petCategories.models import Pet
 class TinyUserSerializers(ModelSerializer):#내동네 설정에서 이용
     #user 정보 : username, profile, pets, region,/ 작성 글(게시글, [댓글, 대댓글]이 있는 게시글)
-    pets= PetsSerializers(many=True)
+    pets= PetCategorySerializer(many=True)
     regionDepth2=serializers.CharField(source="user_address.regionDepth2", read_only=True)
     regionDepth3=serializers.CharField(source="user_address.regionDepth3", read_only=True)
 
@@ -75,7 +75,7 @@ class AddressSerializer(ModelSerializer):#유저 정적 정보 조회시, 내 �
         )
 class UserSerializers(ModelSerializer):#정적 정보 조회시 이용
     user_address=AddressSerializer()
-    pets=PetsSerializers(many=True)
+    pets=PetCategorySerializer(many=True)
     class Meta:
         model=User
         fields=(
@@ -98,7 +98,7 @@ class PublicUserSerializer(ModelSerializer):
         fields=(
             "")
 class PrivateUserSerializers(ModelSerializer):
-    pets=PetsSerializers(many=True)
+    pets=PetCategorySerializer(many=True)
     regionDepth2=serializers.CharField(source="user_address.regionDepth2", read_only=True)
     regionDepth3=serializers.CharField(source="user_address.regionDepth3", read_only=True)
     class Meta:
@@ -146,7 +146,7 @@ class PrivateUserSerializers(ModelSerializer):
 
 
 class EnrollPetSerailzer(ModelSerializer):
-    pets=PetsSerializers(many=True)
+    pets=PetCategorySerializer(many=True)
     class Meta:
         model=User
         fields=("pets",)
@@ -172,9 +172,10 @@ class EnrollPetSerailzer(ModelSerializer):
         return user
 
 
-
+##v2-Seirializer
 
 class UserProfileUploadSerializer(ModelSerializer):
+
     class Meta:
         model=User
         fields=("profile",)
@@ -182,3 +183,17 @@ class UserProfileUploadSerializer(ModelSerializer):
         instance.profile = validated_data["profile"]
         instance.save()
         return instance
+
+
+
+
+
+
+
+
+class V2_PostAuthorSerializer(ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['username', 'profile']
+

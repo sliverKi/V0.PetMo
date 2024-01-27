@@ -11,7 +11,7 @@ nori_analyzer = analyzer(
 )
 @registry.register_document
 class PostDocument(dslDocument):
-    user=fields.ObjectField(
+    author=fields.ObjectField(
         properties={
             'username':fields.TextField(),
             'profile':fields.TextField(),

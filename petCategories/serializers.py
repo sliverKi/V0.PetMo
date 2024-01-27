@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError, ValidationError
 from .models import Pet
 
-class PetsSerializers(ModelSerializer):
+class PetCategorySerializer(ModelSerializer):
     class Meta:
         model=Pet
         fields=("animalTypes",)

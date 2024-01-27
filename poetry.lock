@@ -891,6 +891,14 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "mysqlclient"
+version = "2.2.1"
+description = "Python interface to MySQL"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[[package]]
 name = "nh3"
 version = "0.2.15"
 description = "Python bindings to the ammonia HTML sanitization library."
@@ -1588,7 +1596,7 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.11"
-content-hash = "5a68ff7571b8456c1758b1e4b1a9bf167f3520dc01808d896bf25f749f5baab7"
+content-hash = "6f5a43cf1fb203cb5abb0cf88d48a009f862ee57d370fa3a64c2e600b1bfa4c3"
 
 [metadata.files]
 aiohttp = [
@@ -2396,6 +2404,17 @@ multidict = [
     {file = "multidict-6.0.4-cp39-cp39-win32.whl", hash = "sha256:27c523fbfbdfd19c6867af7346332b62b586eed663887392cff78d614f9ec313"},
     {file = "multidict-6.0.4-cp39-cp39-win_amd64.whl", hash = "sha256:33029f5734336aa0d4c0384525da0387ef89148dc7191aae00ca5fb23d7aafc2"},
     {file = "multidict-6.0.4.tar.gz", hash = "sha256:3666906492efb76453c0e7b97f2cf459b0682e7402c0489a95484965dbc1da49"},
+]
+mysqlclient = [
+    {file = "mysqlclient-2.2.1-cp310-cp310-win_amd64.whl", hash = "sha256:c5a293baebbfcfa2905545198a54e90f1cf00f211eae6637d24930abb6432cba"},
+    {file = "mysqlclient-2.2.1-cp311-cp311-win_amd64.whl", hash = "sha256:8f40c872f19639366e3df27bef2ff087be0e3ee0bd3453470bd29f46b54a90f6"},
+    {file = "mysqlclient-2.2.1-cp312-cp312-win_amd64.whl", hash = "sha256:45600f4f321096bd1ead3355bc62cfcf8d97dc78df94e4ab5db72ecb5db1bd04"},
+    {file = "mysqlclient-2.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:1f8889cc5f0141bb307b915e981a66793df663ace92259344661084a7dd8d12a"},
+    {file = "mysqlclient-2.2.1-cp39-cp39-win_amd64.whl", hash = "sha256:9db6305cdf2a1da350f827d2a19be7f2666eafd9eb8d4f7cbbac5df847d61b99"},
+    {file = "mysqlclient-2.2.1-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:97eee76818774bb695e018ff4c3dafaab74b9a0b0cf32c90b02caeec3b19cd8e"},
+    {file = "mysqlclient-2.2.1-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:4fabe1f4b545ed6244ad0ff426e6b27054b7e5c5b1392be0de2e5f2f59be0392"},
+    {file = "mysqlclient-2.2.1-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:641a7c9de443ddef186a0e89f24b4251ad44f4ddc5e7094332bf2d286d7c9e33"},
+    {file = "mysqlclient-2.2.1.tar.gz", hash = "sha256:2c7ad15b87293b12fd44b47c46879ec95ec647f4567e866ccd70b8337584e9b2"},
 ]
 nh3 = [
     {file = "nh3-0.2.15-cp37-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:9c0d415f6b7f2338f93035bba5c0d8c1b464e538bfbb1d598acd47d7969284f0"},

@@ -6,8 +6,8 @@ from django_seed import Seed
 # from users.models import User
 from posts.models import Post
 from images.models import Image
-from pets.models import Pet
-from categories.models import Category
+from petCategories.models import Pet
+from boardCategories.models import Category
 from django.contrib.auth import get_user_model
 User = get_user_model()
 

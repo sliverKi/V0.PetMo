@@ -27,10 +27,9 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
-    
     hasPet=models.BooleanField(default=False)
     pets=models.ManyToManyField(
-        "pets.Pet",
+        "petCategories.Pet",
         blank=True,
         related_name="user_pets"
     )

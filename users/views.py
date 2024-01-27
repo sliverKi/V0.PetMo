@@ -1,4 +1,4 @@
-import requests, boto3
+import requests, boto3, uuid
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -18,7 +18,6 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import User
 from addresses.models import Address
-from . import serializers
 from .serializers import (
     
     SimpleUserSerializer, PrivateUserSerializers, 
@@ -26,12 +25,12 @@ from .serializers import (
     EnrollPetSerailzer, TinyUserSerializers,
     UserProfileUploadSerializer
     )
-from pets.models import Pet
+from petCategories.models import Pet
 from posts.models import Post, Comment
 
 from posts.serializers import PostDetailSerializers,PostListSerializers, CommentSerializers, ReplySerializers
 from urllib.request import urlopen
-import json, uuid
+
 from config.settings import AWS_S3_ACCESS_KEY_ID, AWS_S3_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
 from django.core.files import File
 from django.core.files.base import ContentFile
@@ -300,6 +299,7 @@ class Quit(APIView):
 
 
 class UserProfileUploadView(APIView):
+
     def post(self, request):
         s3 = boto3.resource(
             's3',
@@ -326,3 +326,6 @@ class UserProfileUploadView(APIView):
             else:
                 return Response({'error': '이미지를 다운로드할 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+

@@ -1,8 +1,7 @@
 from django.db import models
 
-
-class Category(models.Model):
-    class PostKindChoices(models.TextChoices):
+class Board(models.Model):
+    class BoardKindChoices(models.TextChoices):
         
         자유="자유","자유"
         반려질문="반려질문", "반려질문"
@@ -11,11 +10,11 @@ class Category(models.Model):
         축하해요="축하해요","축하해요"
         반려구조대="반려구조대","반려구조대"
         
-    categoryType = models.CharField(
+    boardCategoryType = models.CharField(
         max_length=255,
-        choices=PostKindChoices.choices,
+        choices=BoardKindChoices.choices,
     )
     def __str__(self) -> str:
-        return self.categoryType
+        return self.boardCategoryType
 
     

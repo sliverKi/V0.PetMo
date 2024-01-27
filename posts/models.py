@@ -1,12 +1,18 @@
 from django.db import models
-
 from common.models import CommonModel
 
 class Post(CommonModel):
-    user=models.ForeignKey(
+    author=models.ForeignKey(
         "users.User",
         on_delete=models.CASCADE,
         related_name="posts"
+    )
+    address=models.ForeignKey(
+        "addresses.Address",
+        on_delete=models.SET_NULL,
+        null=True,
+        unique=False,
+        related_name="post_address"
     )
     content=models.TextField(
         max_length=550,
@@ -14,12 +20,11 @@ class Post(CommonModel):
         null=True,
     )
     boardAnimalTypes=models.ManyToManyField(
-        "pets.Pet",
+        "petCategories.Pet",
         related_name="posts",
-        null=True,
     )
     categoryType=models.ForeignKey(
-        "categories.Category",
+        "boardCategories.Board",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -34,7 +39,6 @@ class Post(CommonModel):
         null=True, 
     )
 
-    
     @property
     def likeCount(self):
         return self.postLike.count()
@@ -48,7 +52,7 @@ class Post(CommonModel):
         return self.bookmarks.count()
     
     def __str__(self):
-        return f"{self.user} - {self.content}"
+        return f"{self.author} - {self.content}"
     
 
 
@@ -64,7 +68,7 @@ class Comment(CommonModel):
         blank=True,
         null=True,
         related_name="post_comments",
-        help_text="댓글이 달린 게시글의 pk"
+        help_text="댓글이 달릴 게시글의 pk"
     )
     content=models.CharField(#댓글 작성
         max_length=150,
@@ -78,7 +82,7 @@ class Comment(CommonModel):
         blank=True,
         null=True,
         related_name="replies",
-        help_text="댓글 인지 대댓글인지 구분 토글, if parent_comment==Null: 댓글, else: 대댓글"
+        help_text="댓글 인지 대댓글인지 구분 토글, if parent_comment==null: 댓글, else: 대댓글"
     )
    
     def __str__(self):

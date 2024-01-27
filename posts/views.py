@@ -10,16 +10,20 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ParseError, Va
 from rest_framework.pagination import CursorPagination
 
 from .models import Post, Comment
+from users.models import User
+from addresses.models import Address
 from .serializers import (
     PostSerializers,PostListSerializer,
     PostListSerializers, PostDetailSerializers, 
-    CommentSerializers, ReplySerializers
+    CommentSerializers, ReplySerializers,
+    v2_PostListSerializer
     )
 from .pagination import PaginaitionHandlerMixin
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db.models import Q
 from django.db.models import Count
+from django.db.models import Subquery, CharField, OuterRef, Value
 # #elasticsearch
 # import operator
 # from elasticsearch_dsl import Q as QQ
@@ -121,7 +125,7 @@ class CommentDetail(APIView):# 댓글:  조회 생성, 수정, 삭제(ok)
         return Response(status=status.HTTP_200_OK)
 
 
-class Posts(APIView):#게시글 조회
+class v1Posts(APIView):#게시글 조회
     
     permission_classes=[IsAuthenticated]
 
@@ -133,7 +137,7 @@ class Posts(APIView):#게시글 조회
         # filter_conditions = {}
         # if user_address:
         #     filter_conditions['user__user_address__regionDepth2'] = user_address
-        filter_conditions = {'user__user_address__regionDepth2': user_address}
+        filter_conditions = {'author__user_address__regionDepth2': user_address}
         if boardAnimalTypes and "전체" not in boardAnimalTypes:
             filter_conditions['boardAnimalTypes__animalTypes__in'] = boardAnimalTypes
         if categoryType and categoryType != "전체":
@@ -150,14 +154,12 @@ class Posts(APIView):#게시글 조회
         #         filter_conditions['categoryType__categoryType'] = categoryType
 
         # print("filter_conditions", filter_conditions)
-        # filtered_posts = Post.objects.filter(**filter_conditions).distinct()#47-> 30개 쿼리~> 14쿼리 ~> 4개쿼리
-        filtered_posts = Post.objects.filter(**filter_conditions).annotate(#집계 최적화~> remove @property field 
-            commentCount=Count('post_comments',  filter=Q(post_comments__parent_comment=None), distinct=True), 
-            likeCount=Count('postLike', distinct=True),  
-            bookmarkCount=Count('bookmarks', distinct=True),
-        ).select_related('user', 'user__user_address', 'categoryType').prefetch_related('boardAnimalTypes').distinct()
-        
-        
+        filtered_posts = Post.objects.filter(**filter_conditions).distinct()#47-> 30개 쿼리~> 14쿼리 ~> 4개쿼리
+        # filtered_posts = Post.objects.filter(**filter_conditions).annotate(#집계 최적화~> remove @property field 
+        #     commentCount=Count('post_comments',  filter=Q(post_comments__parent_comment=None), distinct=True), 
+        #     likeCount=Count('postLike', distinct=True),  
+        #     bookmarkCount=Count('bookmarks', distinct=True),
+        # ).select_related('author', 'author__user_address', 'categoryType').prefetch_related('boardAnimalTypes').distinct()
         print("filter_posts", filtered_posts)
 
         serializers=PostListSerializers(filtered_posts, many=True)
@@ -185,7 +187,7 @@ class makePost(APIView):#image test 해보기 - with front
         
         if serializer.is_valid():  
             post=serializer.save(
-                user=request.user,
+                author=request.user,
                 categoryType=request.data.get("categoryType"),
                 boardAnimalTypes=request.data.get("boardAnimalTypes"),
                 Image=request.data.get("Image")
@@ -375,8 +377,33 @@ def trigger_error(request):
 
 
 
-                
 
 
+##V2: query-Optomized ~> Model 수정           
 
+class v2_Posts(APIView):#쿼리 최적화 적용 - 게시글 조회 1. 접속 유저와 동일한 리전의 게시글 목록
+
+    permission_classes=[IsAuthenticated]
+
+    def get(self, request):
+        address_regionDepth2 = Subquery(
+            Address.objects.filter(user_id=OuterRef('author')).values('regionDepth2')[:1], 
+            output_field=CharField()
+        )
+        user_regionDepth2 = request.user.user_address.regionDepth2
+        posts = Post.objects.filter(
+            address__regionDepth2=user_regionDepth2
+            ).select_related(
+                'author', 'categoryType', 'address'
+            ).prefetch_related(
+                'boardAnimalTypes'
+            ).all().annotate(
+                regionDepth2=address_regionDepth2
+            )
+        serializer = v2_PostListSerializer(posts, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+class v2_PostCreate(APIView):
+    pass
 

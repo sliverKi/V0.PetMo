@@ -16,6 +16,7 @@ urlpatterns=[
 
     path("animals", views.getPets.as_view()),#[GET, POST]
     path("withdrawal", views.Quit.as_view()),#[DELETE]
+
 ]
 
 #처리된 url 손봐야 함.
