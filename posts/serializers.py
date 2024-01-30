@@ -353,8 +353,8 @@ class v2_PostListSerializer(ModelSerializer):
     # author = serializers.CharField(source='author.username')#FK에서 필요한 column가져오는 경우 source를 사용함
     categoryType = serializers.CharField(source='categoryType.boardCategoryType')
     animal_types = serializers.SerializerMethodField()
-    regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
-    regionDepth3=  serializers.CharField(source='address.regionDepth3', read_only=True)
+    # regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
+    # regionDepth3=  serializers.CharField(source='address.regionDepth3', read_only=True)
     def get_animal_types(self, obj):
         return [animalType.animalTypes for animalType in obj.boardAnimalTypes.all()]
 
@@ -363,8 +363,8 @@ class v2_PostListSerializer(ModelSerializer):
         fields = [
             'id',
             'author',
-            'regionDepth2',
-            'regionDepth3',
+            # 'regionDepth2',
+            # 'regionDepth3',
             'categoryType', 
             'animal_types', 
             'content', 

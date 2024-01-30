@@ -10,6 +10,6 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display=("id","categoryType", "author", "content","createdDate")
+    list_display=("id","categoryType", "author","address", "content","createdDate")
     list_display_links=("id","author", "content")
     search_fields=("categoryType","boardAnimalTypes", "author",)

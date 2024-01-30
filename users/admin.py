@@ -31,7 +31,7 @@ class MyUserAdmin(UserAdmin):
                     "hasPet",
                     "pets",
                     "first",
-                    # "address",
+                    "address",
                     "profile",
                 )
             },
@@ -61,7 +61,7 @@ class MyUserAdmin(UserAdmin):
         "username",
         "email",
         "hasPet",
-        # "address",
+        "address",
         "is_staff",
     )
     list_display_links=('pk', 'username')

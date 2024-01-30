@@ -27,6 +27,13 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
+    address = models.ForeignKey(
+        'addresses.Address',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user_address'
+    )
     hasPet=models.BooleanField(default=False)
     pets=models.ManyToManyField(
         "petCategories.Pet",

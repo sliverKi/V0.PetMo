@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
-
+from django.core.cache import cache
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
@@ -10,6 +10,8 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ParseError, Va
 from rest_framework.pagination import CursorPagination
 
 from .models import Post, Comment
+from petCategories.models import Pet
+
 from users.models import User
 from addresses.models import Address
 from .serializers import (
@@ -21,9 +23,11 @@ from .serializers import (
 from .pagination import PaginaitionHandlerMixin
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from django.db.models import Q
+from django.db.models import Prefetch
 from django.db.models import Count
 from django.db.models import Subquery, CharField, OuterRef, Value
+
+from django.shortcuts import get_object_or_404
 # #elasticsearch
 # import operator
 # from elasticsearch_dsl import Q as QQ
@@ -128,7 +132,7 @@ class v1Posts(APIView):#게시글 조회~> 3개의 게시글: 31query발생
     permission_classes=[IsAuthenticated]
 
     def get(self, request):#local에서는 get으로 testing / prod에는 post로 변경할 것.
-        user_address = request.user.user_address.regionDepth2 if request.user.user_address else '연수구'
+        user_address = request.user.address.regionDepth2 if request.user.address else '연수구'
         boardAnimalTypes=request.data.get("boardAnimalTypes", [])
         categoryType=request.data.get("categoryType", "")
         
@@ -380,32 +384,24 @@ class v2_Posts(APIView):#쿼리 최적화 적용 - 게시글 조회 1. 접속 �
 
     permission_classes=[IsAuthenticated]
 
-    def get(self, request):
-        address_regionDepth2 = Subquery(
-            Address.objects.filter(user_id=OuterRef('author')).values('regionDepth2')[:1].values('regionDepth3')[:1], 
-            output_field=CharField()
-        )
-        user_regionDepth2 = request.user.user_address.regionDepth2
-        posts = Post.objects.filter(
-            address__regionDepth2=user_regionDepth2
-            ).select_related(
-                'author', 'categoryType', 'address'
-            ).prefetch_related(
-                'boardAnimalTypes'
-            ).all().annotate(
-                regionDepth2=address_regionDepth2#user_address를 동적으로 전달
-            )
-        serializer = v2_PostListSerializer(posts, many=True)
+    def post(self, request): # cacheX: 7_query / cache O: 6_query
+        
+        user_address = cache.get(f'user_address_{request.user.id}')
+        if not user_address:
+            user_address = request.user.address
+            if user_address:
+                cache.set(f'user_address_{request.user.id}', user_address, timeout=3600)  # 1시간 동안 캐시
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if user_address:
+            user_regionDepth2 = user_address.regionDepth2
+            posts = Post.objects.filter(address__regionDepth2=user_regionDepth2)
+        else:
+            # 주소가 없는 경우, 빈 결과 반환
+            posts = Post.objects.none()
+       
+        # 필요한 필드만 선택하여 쿼리 최적화
+        posts = posts.select_related('author', 'categoryType', 'address').prefetch_related('boardAnimalTypes')
     
-    def post(self,request):
-        posts=Post.objects.select_related(
-            'author', 'categoryType', 'address'
-        ).prefetch_related(
-            'boardAnimalTypes'
-        ).all()
-
         categoryType = request.data.get('categoryType')
         animal_types = request.data.get('boardAnimalTypes')
        
@@ -417,6 +413,26 @@ class v2_Posts(APIView):#쿼리 최적화 적용 - 게시글 조회 1. 접속 �
         serializer = v2_PostListSerializer(posts, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    # def post(self,request):
+        
+    #     posts=Post.objects.select_related(
+    #         'author', 'categoryType', 'address'
+    #     ).prefetch_related(
+    #         'boardAnimalTypes'
+    #     )
+
+    #     categoryType = request.data.get('categoryType')
+    #     animal_types = request.data.get('boardAnimalTypes')
+       
+    #     if categoryType:
+    #         posts = posts.filter(categoryType__boardCategoryType=categoryType)
+    #     if animal_types:
+    #         posts = posts.filter(boardAnimalTypes__animalTypes=animal_types)
+
+    #     serializer = v2_PostListSerializer(posts, many=True)
+
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
         
 class v2_PostCreate(APIView):
