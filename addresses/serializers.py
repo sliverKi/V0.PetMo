@@ -4,4 +4,4 @@ from rest_framework.serializers import ModelSerializer
 class AddressSerializer(ModelSerializer):
     class Meta:
         model = Address
-        fields = ['regionDepth2']
+        fields = ['regionDepth2', 'regionDepth3']

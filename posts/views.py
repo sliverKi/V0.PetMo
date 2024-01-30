@@ -123,9 +123,7 @@ class CommentDetail(APIView):# 댓글:  조회 생성, 수정, 삭제(ok)
             raise PermissionDenied
         comment.delete()
         return Response(status=status.HTTP_200_OK)
-
-
-class v1Posts(APIView):#게시글 조회
+class v1Posts(APIView):#게시글 조회~> 3개의 게시글: 31query발생 
     
     permission_classes=[IsAuthenticated]
 
@@ -172,9 +170,6 @@ class v1Posts(APIView):#게시글 조회
     # {  "boardAnimalTypes":["강아지"], 
     #   "categoryType":"자유"
     # }
-    
-
-           
 class makePost(APIView):#image test 해보기 - with front 
     # authentication_classes=[SessionAuthentication]
     # permission_classes=[IsAuthenticated]
@@ -189,8 +184,7 @@ class makePost(APIView):#image test 해보기 - with front
             post=serializer.save(
                 author=request.user,
                 categoryType=request.data.get("categoryType"),
-                boardAnimalTypes=request.data.get("boardAnimalTypes"),
-                Image=request.data.get("Image")
+                boardAnimalTypes=request.data.get("boardAnimalTypes")
             )
             serializer=PostListSerializers(
                 post,
@@ -206,8 +200,9 @@ class PostDetail(APIView):#게시글의 자세한 정보
         except Post.DoesNotExist:
             raise NotFound
 
-    def get(self,request,pk):
+    def get(self,request,pk):#1개의 게시글 조회시 15개의 쿼리 발생(15 queries including 8 similar and 8 duplicates) 
         post=self.get_object(pk)
+        print("post", post)
         post.viewCount+=1 # 조회수 카운트
         post.save()
         
@@ -219,7 +214,7 @@ class PostDetail(APIView):#게시글의 자세한 정보
         
     def put(self, request, pk):
         post=self.get_object(pk=pk)
-        if post.user != request.user:
+        if post.author != request.user:
             raise PermissionDenied
         
         serializer=PostDetailSerializers(
@@ -233,7 +228,7 @@ class PostDetail(APIView):#게시글의 자세한 정보
                 post=serializer.save(
                     category=request.data.get("categoryType"),
                     boardAnimalTypes=request.data.get("boardAnimalTypes"),
-                    Image=request.data.get("Image")
+                    # Image=request.data.get("Image")
                 )
             except serializers.ValidationError as e: 
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -246,7 +241,7 @@ class PostDetail(APIView):#게시글의 자세한 정보
 
     def delete(self, request,pk):#게시글 삭제
         post=self.get_object(pk)    
-        if request.user!=post.user:
+        if request.user!=post.author:
             raise PermissionDenied("게시글 삭제 권한이 없습니다.")
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -387,7 +382,7 @@ class v2_Posts(APIView):#쿼리 최적화 적용 - 게시글 조회 1. 접속 �
 
     def get(self, request):
         address_regionDepth2 = Subquery(
-            Address.objects.filter(user_id=OuterRef('author')).values('regionDepth2')[:1], 
+            Address.objects.filter(user_id=OuterRef('author')).values('regionDepth2')[:1].values('regionDepth3')[:1], 
             output_field=CharField()
         )
         user_regionDepth2 = request.user.user_address.regionDepth2
@@ -398,12 +393,33 @@ class v2_Posts(APIView):#쿼리 최적화 적용 - 게시글 조회 1. 접속 �
             ).prefetch_related(
                 'boardAnimalTypes'
             ).all().annotate(
-                regionDepth2=address_regionDepth2
+                regionDepth2=address_regionDepth2#user_address를 동적으로 전달
             )
         serializer = v2_PostListSerializer(posts, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self,request):
+        posts=Post.objects.select_related(
+            'author', 'categoryType', 'address'
+        ).prefetch_related(
+            'boardAnimalTypes'
+        ).all()
+
+        categoryType = request.data.get('categoryType')
+        animal_types = request.data.get('boardAnimalTypes')
+       
+        if categoryType:
+            posts = posts.filter(categoryType__boardCategoryType=categoryType)
+        if animal_types:
+            posts = posts.filter(boardAnimalTypes__animalTypes=animal_types)
+
+        serializer = v2_PostListSerializer(posts, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
         
 class v2_PostCreate(APIView):
     pass
+
 

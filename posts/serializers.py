@@ -19,7 +19,8 @@ from bookmarks.models import Bookmark
 from search.documents import PostDocument
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 import sys
-
+from addresses.models import Address
+from addresses.serializers import AddressSerializer
 from django.db import transaction
 sys.setrecursionlimit(100000)
 
@@ -95,7 +96,7 @@ class PostSerializers(ModelSerializer):#댓글 없음.
             "boardAnimalTypes",
             "author",
             "content",
-            "Image",#ImageModel의 related_name 이용 
+            # "Image",#ImageModel의 related_name 이용 
             # "likeCount",
             # "likeCheck",
         )
@@ -113,7 +114,7 @@ class PostSerializers(ModelSerializer):#댓글 없음.
         print("category_data: ", category_data)
         pet_category_data=validated_data.pop("boardAnimalTypes", None)
         print("pet_: ", pet_category_data)
-        image_data = validated_data.pop("Image", None)#값 없으면 None
+        # image_data = validated_data.pop("Image", None)#값 없으면 None
         try:
             with transaction.atomic():
                 post = Post.objects.create(**validated_data)
@@ -124,15 +125,15 @@ class PostSerializers(ModelSerializer):#댓글 없음.
                     post.categoryType=categoryType
                     post.save()
 
-                if image_data:
-                    if isinstance(image_data, list):
-                        if len(image_data)<=5:
-                            for img in image_data:
-                                Image.objects.create(post=post, img_path=img.get("img_path"))
-                        else:
-                            raise ParseError("이미지는 최대 5장 까지 업로드 할 수 있습니다.") 
-                    else:
-                        raise ParseError("image 잘못된 형식 입니다.")               
+                # if image_data:
+                #     if isinstance(image_data, list):
+                #         if len(image_data)<=5:
+                #             for img in image_data:
+                #                 Image.objects.create(post=post, img_path=img.get("img_path"))
+                #         else:
+                #             raise ParseError("이미지는 최대 5장 까지 업로드 할 수 있습니다.") 
+                #     else:
+                #         raise ParseError("image 잘못된 형식 입니다.")               
                 
                 if pet_category_data:
                     if len(pet_category_data) > 3:
@@ -250,7 +251,6 @@ class PostDetailSerializers(ModelSerializer):#image 나열
     author=SimpleUserSerializer()
     boardAnimalTypes=PetCategorySerializer(many=True)
     categoryType=BoardCategorySerializer()
-    # Image=ImageSerializers(many=True, read_only=True, required=False)
     likeCheck=serializers.SerializerMethodField()
     commentCount=serializers.SerializerMethodField()
     bookmarkCheck=serializers.SerializerMethodField()
@@ -262,7 +262,6 @@ class PostDetailSerializers(ModelSerializer):#image 나열
             "boardAnimalTypes",
             "author", 
             "content",
-            "Image",
             "createdDate",
             "updatedDate",    
             "viewCount",# 조회수 
@@ -286,7 +285,7 @@ class PostDetailSerializers(ModelSerializer):#image 나열
     def get_bookmarkCheck(self, data):
         request=self.context.get("request")
         if request and request.user.is_authenticated:
-            return Bookmark.objects.filter(author=request.user, post=data).exists()
+            return Bookmark.objects.filter(user=request.user, post=data).exists()
         return False
     
 # {
@@ -355,7 +354,7 @@ class v2_PostListSerializer(ModelSerializer):
     categoryType = serializers.CharField(source='categoryType.boardCategoryType')
     animal_types = serializers.SerializerMethodField()
     regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
-    
+    regionDepth3=  serializers.CharField(source='address.regionDepth3', read_only=True)
     def get_animal_types(self, obj):
         return [animalType.animalTypes for animalType in obj.boardAnimalTypes.all()]
 
@@ -365,10 +364,10 @@ class v2_PostListSerializer(ModelSerializer):
             'id',
             'author',
             'regionDepth2',
+            'regionDepth3',
             'categoryType', 
             'animal_types', 
             'content', 
-            'postImage', 
             'viewCount', 
             'createdDate', 
             'updatedDate'
