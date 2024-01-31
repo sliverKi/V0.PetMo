@@ -81,7 +81,7 @@ THIRD_PARTY_APPS=[
     'whitenoise.runserver_nostatic',
     'debug_toolbar',
     'storages',
-    
+    'silk'
 ]
 CUSTOM_APPS=[
     "auths.apps.AuthsConfig",
@@ -123,6 +123,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'silk.middleware.SilkyMiddleware',
     #'config.search.searchRateLimiterMiddleware',# 검색어 관리 및 검색 횟수 제한 미들웨어 추가 ~> 모든 페이지에 적용되는 문제 발생 ~> 특정 url에만 적용하기 위해 옮김
 ]
 
@@ -311,8 +312,6 @@ if DEBUG:
         }
     }
     REDIS_HOST = "localhost"
-    
-
 else: 
     CACHES = {
         "default": {
@@ -341,6 +340,12 @@ LOGGING = {
         },
     },
 }
+
+#SILK : API Profiling 
+# SILKY_PYTHON_PROFILER = True
+# SILKY_PYTHON_PROFILER = True
+# SILKY_PYTHON_PROFILER_BINARY = True
+
 
 #Sentry -> log monitoring
 # if not DEBUG:#개발 환경에서는 작동 안함

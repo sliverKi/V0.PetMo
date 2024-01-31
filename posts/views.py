@@ -18,7 +18,7 @@ from .serializers import (
     PostSerializers,PostListSerializer,
     PostListSerializers, PostDetailSerializers, 
     CommentSerializers, ReplySerializers,
-    v2_PostListSerializer
+    v2_PostListSerializer, v3_PostListSerializer
     )
 from .pagination import PaginaitionHandlerMixin
 from drf_yasg.utils import swagger_auto_schema
@@ -28,6 +28,9 @@ from django.db.models import Count
 from django.db.models import Subquery, CharField, OuterRef, Value
 
 from django.shortcuts import get_object_or_404
+# silk
+# from django.utils.decorators import method_decorator
+# from silk.profiling.profiler import silk_profile
 # #elasticsearch
 # import operator
 # from elasticsearch_dsl import Q as QQ
@@ -127,10 +130,12 @@ class CommentDetail(APIView):# 댓글:  조회 생성, 수정, 삭제(ok)
             raise PermissionDenied
         comment.delete()
         return Response(status=status.HTTP_200_OK)
+
+# @method_decorator(silk_profile(name='v1Posts'), name='dispatch')
 class v1Posts(APIView):#게시글 조회~> 3개의 게시글: 31query발생 
     
     permission_classes=[IsAuthenticated]
-
+    # @silk_profile(name='View get movie data')
     def get(self, request):#local에서는 get으로 testing / prod에는 post로 변경할 것.
         user_address = request.user.address.regionDepth2 if request.user.address else '연수구'
         boardAnimalTypes=request.data.get("boardAnimalTypes", [])
@@ -156,21 +161,9 @@ class v1Posts(APIView):#게시글 조회~> 3개의 게시글: 31query발생
         #         filter_conditions['categoryType__categoryType'] = categoryType
 
         # print("filter_conditions", filter_conditions)
-        filtered_posts = Post.objects.filter(**filter_conditions).distinct()#47-> 30개 쿼리~> 14쿼리 ~> 4개쿼리
-        # filtered_posts = Post.objects.filter(**filter_conditions).annotate(#집계 최적화~> remove @property field 
-        #     commentCount=Count('post_comments',  filter=Q(post_comments__parent_comment=None), distinct=True), 
-        #     likeCount=Count('postLike', distinct=True),  
-        #     bookmarkCount=Count('bookmarks', distinct=True),
-        # ).select_related('author', 'author__user_address', 'categoryType').prefetch_related('boardAnimalTypes').distinct()
-        print("filter_posts", filtered_posts)
-
+        filtered_posts = Post.objects.filter(**filter_conditions).distinct()
         serializers=PostListSerializers(filtered_posts, many=True)
-        
-        # 응답 반환
         return Response(serializers.data, status=status.HTTP_200_OK if filtered_posts.exists() else status.HTTP_204_NO_CONTENT)
-        
-       
-    
     # {  "boardAnimalTypes":["강아지"], 
     #   "categoryType":"자유"
     # }
@@ -383,7 +376,37 @@ def trigger_error(request):
 class v2_Posts(APIView):#쿼리 최적화 적용 - 게시글 조회 1. 접속 유저와 동일한 리전의 게시글 목록
 
     permission_classes=[IsAuthenticated]
+    def get(self, request):
+        # user_queryset = User.objects.only('username', 'profile')
 
+        user_address = cache.get(f'user_address_{request.user.id}')
+        if not user_address:
+            user_address = request.user.address
+            if user_address:
+                cache.set(f'user_address_{request.user.id}', user_address, timeout=3600)  # 1시간 동안 캐시
+
+        if user_address:
+            user_regionDepth2 = user_address.regionDepth2
+            posts = Post.objects.filter(address__regionDepth2=user_regionDepth2)
+        else:
+            # 주소가 없는 경우, 빈 결과 반환
+            posts = Post.objects.none()
+       
+        # 필요한 필드만 선택하여 쿼리 최적화
+        posts = posts.select_related(
+            'author', 'categoryType', 'address'
+            ).prefetch_related(
+                'boardAnimalTypes'
+            ).only(
+                'author__username', 'author__profile',
+                'content', 'categoryType', 'address__regionDepth2','address__regionDepth3','viewCount','createdDate', 'updatedDate' 
+                # 여기에 필요한 나머지 Post 필드를 추가합니다.
+            )
+        
+        # .prefetch_related('boardAnimalTypes')
+        serializer = v2_PostListSerializer(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
     def post(self, request): # cacheX: 7_query / cache O: 6_query
         
         user_address = cache.get(f'user_address_{request.user.id}')
@@ -435,7 +458,39 @@ class v2_Posts(APIView):#쿼리 최적화 적용 - 게시글 조회 1. 접속 �
     #     return Response(serializer.data, status=status.HTTP_200_OK)
 
         
-class v2_PostCreate(APIView):
-    pass
+class v3_Posts(APIView):
 
+    permission_classes=[IsAuthenticated]
 
+    def get(self, request):
+
+        user_address = cache.get(f'user_address_{request.user.id}')
+        if not user_address:
+            user_address = request.user.user_address
+            if user_address:
+                cache.set(f'user_address_{request.user.id}', user_address, timeout=3600)  # 1시간 동안 캐시
+
+        if user_address:
+            user_regionDepth = user_address.regionDepth2
+        
+        address_regionDepth = Subquery(
+            Address.objects.filter(user_id=OuterRef('author')).values('regionDepth2')[:1].values('regionDepth3')[:1], 
+            output_field=CharField()
+        )
+        
+        # user_regionDepth = request.user.user_address.first().regionDepth2
+        posts = Post.objects.filter(
+            address__regionDepth2=user_regionDepth
+            ).select_related(
+                'author', 'categoryType', 'address'
+            ).prefetch_related(
+                'boardAnimalTypes'
+            ).annotate(
+                regionDepth2=address_regionDepth#user_address를 동적으로 전달
+            ).only(
+                'author__username', 'author__profile',
+                'content', 'categoryType', 'address__regionDepth2','address__regionDepth3','viewCount','createdDate', 'updatedDate' 
+            )
+        serializer = v3_PostListSerializer(posts, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

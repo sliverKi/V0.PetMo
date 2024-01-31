@@ -173,7 +173,6 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
     commentCount = serializers.IntegerField(read_only=True)
     likeCount = serializers.IntegerField(read_only=True)
     bookmarkCount = serializers.IntegerField(read_only=True)
-
     createdDate = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
     updatedDate = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
 
@@ -353,8 +352,9 @@ class v2_PostListSerializer(ModelSerializer):
     # author = serializers.CharField(source='author.username')#FK에서 필요한 column가져오는 경우 source를 사용함
     categoryType = serializers.CharField(source='categoryType.boardCategoryType')
     animal_types = serializers.SerializerMethodField()
-    # regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
-    # regionDepth3=  serializers.CharField(source='address.regionDepth3', read_only=True)
+    regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
+    regionDepth3=  serializers.CharField(source='address.regionDepth3', read_only=True)
+    
     def get_animal_types(self, obj):
         return [animalType.animalTypes for animalType in obj.boardAnimalTypes.all()]
 
@@ -363,8 +363,33 @@ class v2_PostListSerializer(ModelSerializer):
         fields = [
             'id',
             'author',
-            # 'regionDepth2',
-            # 'regionDepth3',
+            'regionDepth2',
+            'regionDepth3',
+            'categoryType', 
+            'animal_types', 
+            'content', 
+            'viewCount', 
+            'createdDate', 
+            'updatedDate'
+        ]
+class v3_PostListSerializer(ModelSerializer):
+    author=V2_PostAuthorSerializer()
+    # author = serializers.CharField(source='author.username')#FK에서 필요한 column가져오는 경우 source를 사용함
+    categoryType = serializers.CharField(source='categoryType.boardCategoryType')
+    animal_types = serializers.SerializerMethodField()
+    regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
+    regionDepth3=  serializers.CharField(source='address.regionDepth2', read_only=True)
+    
+    def get_animal_types(self, obj):
+        return [animalType.animalTypes for animalType in obj.boardAnimalTypes.all()]
+
+    class Meta:
+        model = Post
+        fields = [
+            'id',
+            'author',
+            'regionDepth2',
+            'regionDepth3',
             'categoryType', 
             'animal_types', 
             'content', 

@@ -19,6 +19,7 @@ schema_view = get_schema_view(
 
 )
 urlpatterns = [
+    # path('silk/', include('silk.urls')),
     path('admin/', admin.site.urls),
     path("api/v2/users/",include("users.urls")),
     path("api/v2/petCategories/", include("petCategories.urls")),

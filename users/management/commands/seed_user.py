@@ -3,11 +3,12 @@ from django.core.management.base import BaseCommand, CommandParser
 
 from faker import Faker
 from django_seed import Seed
-from users.models import User, Address
+from users.models import User
+from addresses.models import Address
 from posts.models import Post
-from images.models import Image
+
 from petCategories.models import Pet
-from boardCategories.models import Category
+from boardCategories.models import Board
 
 class Command(BaseCommand):
     help="generate random data"
@@ -32,7 +33,6 @@ class Command(BaseCommand):
             "username": lambda x : fake.user_name(),
             "email": lambda x : fake.email(),
             "profile": lambda x: fake.url(),
-            # "address": None,
             "hasPet": lambda x : random.choice([True, False]),
             "first": True,
             "is_staff": False,
@@ -47,8 +47,6 @@ class Command(BaseCommand):
         print("user_ids: ", user_ids)
 
         # print("a: ",fake.address())
-        
-        
 
         for user_id in user_ids:
             user = User.objects.get(id=user_id)
@@ -57,15 +55,16 @@ class Command(BaseCommand):
                 num_pets = random.randint(1,3)
                 pets = random.sample(list(Pet.objects.all()), num_pets)
                 user.pets.set(pets)
-            fake_address=fake.address()
-            reegions=fake_address.split()
-            print(reegions[0], reegions[1], reegions[2])
+
+             # Faker로부터 랜덤 주소 생성
+            fake_address = fake.address()
+            regions = fake_address.split()
             address = Address.objects.create(
                 user=user,
                 addressName=fake_address,
-                regionDepth1=reegions[0],
-                regionDepth2=reegions[1],
-                regionDepth3=reegions[2],
+                regionDepth1=regions[0],
+                regionDepth2=regions[1],
+                regionDepth3=regions[2] if len(regions) > 2 else '',
             )        
 
             user.address = address
