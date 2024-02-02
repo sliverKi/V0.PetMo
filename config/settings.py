@@ -1,11 +1,10 @@
-#06.01
 #vscode에는 현재 베포 서버용 settings가 설정되어 있음
 #github애는 현재 개발 서버용 settings가 설정되어 있음
 import os, my_DB
 from pathlib import Path
 from datetime import timedelta
 import environ
-# import sentry_sdk
+# import sentry_sdk~> kill sentry 
 # from sentry_sdk.integrations.django import DjangoIntegration
 #from config.logger import CustomisedJSONFormatter
 import dj_database_url
@@ -67,6 +66,7 @@ SESSION_COOKIE_AGE = 3600
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 THIRD_PARTY_APPS=[
+    #JWT
     # "rest_framework_simplejwt.token_blacklist",
     # "dj_rest_auth",
     # "dj_rest_auth.registration",
@@ -81,7 +81,7 @@ THIRD_PARTY_APPS=[
     'whitenoise.runserver_nostatic',
     'debug_toolbar',
     'storages',
-    'silk'
+    # 'silk'
 ]
 CUSTOM_APPS=[
     "auths.apps.AuthsConfig",
@@ -94,6 +94,7 @@ CUSTOM_APPS=[
     "bookmarks.apps.BookmarksConfig",
     "likes.apps.LikesConfig",
     "search.apps.SearchConfig",
+    "history.apps.HistoryConfig",
 ]
 
 SYSTEM_APPS = [
@@ -342,7 +343,6 @@ LOGGING = {
 }
 
 #SILK : API Profiling 
-# SILKY_PYTHON_PROFILER = True
 # SILKY_PYTHON_PROFILER = True
 # SILKY_PYTHON_PROFILER_BINARY = True
 

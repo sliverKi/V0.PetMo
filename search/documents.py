@@ -26,14 +26,10 @@ class PostDocument(dslDocument):
     )    
     categoryType=fields.ObjectField(
         properties={
-            "categoryType": fields.TextField()
+            "boardCategoryType": fields.TextField()
         }
     )
-    Image=fields.ObjectField(
-        properties={
-            "img_path":fields.TextField()
-        }
-    )
+    
     
     createdDate=fields.DateField()
     updatedDate=fields.DateField()
