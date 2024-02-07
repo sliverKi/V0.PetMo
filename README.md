@@ -28,8 +28,10 @@ Original development of Petmo Project.
 
 ## * :bulb: System Architecture
 ---
+Local
 ![image](https://github.com/sliverKi/V0.PetMo/assets/121347506/d3d461d1-4fcb-4168-b2b6-1afb603425c5)
-
+Prod
+![petmo-구조 v2](https://github.com/sliverKi/V2.PetMo/assets/121347506/24f6fa04-f182-4863-89fb-913fca198156)
 ## * :bulb: ERD 
 ---
 ![image](https://github.com/sliverKi/V0.PetMo/assets/121347506/7c3c1917-ec56-4361-91f3-f6490af54cd8)
