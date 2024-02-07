@@ -374,6 +374,49 @@ class v2_PostListSerializer(ModelSerializer):
             'createdDate', 
             'updatedDate'
         ]
+
+
+class v2_noAddressPostListSerializer(ModelSerializer):
+
+    author = serializers.SerializerMethodField()
+    # categoryType = serializers.CharField(source='categoryType.boardCategoryType', read_only=True)
+    categoryType = serializers.CharField(source='categoryType__boardCategoryType', read_only=True)
+
+    # animal_types = serializers.SerializerMethodField()
+    # boardAnimalTypes=PetCategorySerializer(many=True)
+    regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
+    regionDepth3=  serializers.CharField(source='address.regionDepth3', read_only=True)
+    
+    # def get_animal_types(self, obj):
+    #     return [animalType.animalTypes for animalType in obj.boardAnimalTypes.all()]
+    def get_author(self, obj):
+        # obj는 사전 형태의 데이터가 될 것이므로, author 필드에 직접 접근합니다.
+        return {
+            'username': obj['author__username'],
+            'profile': obj['author__profile']
+        }
+    
+    def to_representation(self, instance):
+        # Adjust to_representation to correctly handle nested attributes
+        representation = super(v2_noAddressPostListSerializer, self).to_representation(instance)
+        # Assuming 'instance' is a dictionary with correct keys from cached data
+        # No changes needed if 'categoryType__boardCategoryType' is correctly stored in cached data
+        return representation
+    class Meta:
+        model = Post
+        fields = [
+            'id',
+            'author',
+            'regionDepth2',
+            'regionDepth3',
+            'categoryType', 
+            # 'animal_types',
+            # 'boardAnimalTypes',
+            'content', 
+            'viewCount', 
+            'createdDate', 
+            'updatedDate'
+        ]
 class v3_PostListSerializer(ModelSerializer):
     author=V2_PostAuthorSerializer()
     # author = serializers.CharField(source='author.username')#FK에서 필요한 column가져오는 경우 source를 사용함

@@ -1,17 +1,13 @@
-#vscode에는 현재 베포 서버용 settings가 설정되어 있음
-#github애는 현재 개발 서버용 settings가 설정되어 있음
-import os, my_DB
+import os, my_DB, prod_DB
 from pathlib import Path
 from datetime import timedelta
 import environ
-# import sentry_sdk~> kill sentry 
-# from sentry_sdk.integrations.django import DjangoIntegration
-#from config.logger import CustomisedJSONFormatter
-import dj_database_url
-
+# import dj_database_url
+from requests_aws4auth import AWS4Auth
+from elasticsearch import Elasticsearch, RequestsHttpConnection
 #로컬서버에서의 cors, csrftoken  설정
 #momo@gmail.com-momo : debug=True
-#test develop
+
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,9 +27,6 @@ SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS=["*"]
 
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 #CORS Setting
 CORS_ALLOW_CREDENTIALS = True
@@ -149,25 +142,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # DEBUG = 'RENDER' not in os.environ
+# DEBUG=env("DEBUG")
 DEBUG=True
 
-if DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    DATABASES = my_DB.DATABASES
-    # DATABASES = {
-    #     'default': {
-    #             'ENGINE': 'django.db.backends.sqlite3',
-    #             'NAME': BASE_DIR/ 'db.sqlite3',
-    #         }
-    # }
-else:
-     DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600,
-        )
-                    
-    }
      
 if not DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
@@ -260,14 +237,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 #by gunicorn
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 
-#elasticssearch
-ELASTICSEARCH_DSL = {
-    'default': {
-        "hosts": "localhost:9200"
-    }
-}
+
 
 MEDIA_ROOT = "uploads"
 
@@ -295,35 +267,73 @@ AWS_QUERYSTRING_AUTH = False     # don't add complex authentication-related quer
 
 AWS_S3_ACCESS_KEY_ID = env("AWS_S3_ACCESS_KEY_ID")
 AWS_S3_SECRET_ACCESS_KEY = env("AWS_S3_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = 'petmobucket'
-AWS_S3_REGION_NAME = 'ap-northeast-2'
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
 
 STATIC_URL = 'https://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
 
-#Redis
-REDIS_PORT = 6379
+#Redis(elasticCache)
+REDIS_PORT = env("REDIS_PORT")
+# REDIS_HOST = env("REDIS_HOST")
+REDIS_HOST='localhost'
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+    
+#DB
+
+RDS_PASSWORD=env('RDS_PASSWORD')
+RDS_HOSTNAME=env('RDS_HOSTNAME')
+RDS_POST=env('RDS_PORT')
+
 if DEBUG:
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://localhost:6379",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
+    STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    DATABASES = my_DB.DATABASES
+
+else:
+    DATABASES = {
+        'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'petmoRDS',
+        'USER': 'admin',
+        'PASSWORD': 'admin1234',
+        'HOST': 'petmo.ck09gu2by087.ap-northeast-2.rds.amazonaws.com',  # 예: 'your-db-instance.rds.amazonaws.com'
+        'PORT': 3306,
         }
     }
-    REDIS_HOST = "localhost"
-else: 
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://redis:6379",
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
+    
+#elasticssearch & OpenSearch
+AWS_ACCESS_KEY_ID=env("AWS_S3_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY=env("AWS_S3_SECRET_ACCESS_KEY")
+AWS_REGION=env("AWS_S3_REGION_NAME")
+SERVICE=env("SERVICE")
+
+awsauth = AWS4Auth(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, SERVICE)
+OPENSEARCH_HOST=env("OPENSEARCH_HOST")
+if DEBUG:
+    ELASTICSEARCH_DSL = {
+        'default': {
+            "hosts": "localhost:9200"
         }
     }
-    REDIS_HOST = "redis"
+else:
+    ELASTICSEARCH_DSL = {
+       'default': {
+        'hosts': OPENSEARCH_HOST,
+        'http_auth': awsauth,
+        'use_ssl': True,
+        'verify_certs': True,
+        'connection_class': RequestsHttpConnection
+        },
+    }
+
 #콘솔창에서 SQL 쿼리 보기
 LOGGING = {
     "version": 1,
@@ -341,21 +351,3 @@ LOGGING = {
         },
     },
 }
-
-#SILK : API Profiling 
-# SILKY_PYTHON_PROFILER = True
-# SILKY_PYTHON_PROFILER_BINARY = True
-
-
-#Sentry -> log monitoring
-# if not DEBUG:#개발 환경에서는 작동 안함
-    
-#     sentry_sdk.init(
-#         dsn="https://e7a874aa712847f1a0659474973d022e@o4505280354975744.ingest.sentry.io/4505280371032064",
-#         integrations=[
-#             DjangoIntegration(),
-#         ],
-#         traces_sample_rate=1.0,
-#         send_default_pii=True
-#     )
-

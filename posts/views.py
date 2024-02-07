@@ -373,39 +373,42 @@ def trigger_error(request):
 
 ##V2: query-Optomized ~> Model 수정           
 
-class v2_Posts(APIView):#쿼리 최적화 적용 - 게시글 조회 1. 접속 유저와 동일한 리전의 게시글 목록
+class v2_Posts(APIView):#쿼리 최적화 적용 
 
     permission_classes=[IsAuthenticated]
     def get(self, request):
-        # user_queryset = User.objects.only('username', 'profile')
-
-        user_address = cache.get(f'user_address_{request.user.id}')
-        if not user_address:
-            user_address = request.user.address
-            if user_address:
-                cache.set(f'user_address_{request.user.id}', user_address, timeout=3600)  # 1시간 동안 캐시
-
+        
+        user_address = request.user.address
+       
         if user_address:
-            user_regionDepth2 = user_address.regionDepth2
+            cache_key = f'user_address_{request.user.id}'
+            user_regionDepth2 = self._get_user_regionDepth2(cache_key, user_address)
             posts = Post.objects.filter(address__regionDepth2=user_regionDepth2)
         else:
-            # 주소가 없는 경우, 빈 결과 반환
-            posts = Post.objects.none()
-       
-        # 필요한 필드만 선택하여 쿼리 최적화
-        posts = posts.select_related(
-            'author', 'categoryType', 'address'
-            ).prefetch_related(
-                'boardAnimalTypes'
-            ).only(
-                'author__username', 'author__profile',
-                'content', 'categoryType', 'address__regionDepth2','address__regionDepth3','viewCount','createdDate', 'updatedDate' 
-                # 여기에 필요한 나머지 Post 필드를 추가합니다.
-            )
+            posts = Post.objects.all().order_by('-createdDate')[:10]
         
-        # .prefetch_related('boardAnimalTypes')
+        posts = self._optimize_query(posts)
+            
         serializer = v2_PostListSerializer(posts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    def _get_user_regionDepth2(self, cache_key, user_address):
+        cache_user_address = cache.get(cache_key)
+        if not cache_user_address:
+            cache.set(cache_key, user_address, timeout=3600)  #Cache  1 hour
+            cache_user_address = user_address
+        return cache_user_address.regionDepth2 if cache_user_address else user_address.regionDepth2
+
+    def _optimize_query(self, posts):
+        return posts.select_related(
+            'author', 'categoryType', 'address'
+        ).prefetch_related(
+            'boardAnimalTypes'
+        ).only(
+            'author__username', 'author__profile', 'content', 'categoryType', 'address__regionDepth2',
+            'address__regionDepth3', 'viewCount', 'createdDate', 'updatedDate'
+        )
     
     def post(self, request): # cacheX: 7_query / cache O: 6_query
         
