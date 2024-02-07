@@ -12,7 +12,6 @@ data/
 tmp
 prod_DB.py
 .prod.env
-docker-compose.prod.yml
 Dockerfile.prod
 
 # Environments

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    container_name: web.prod
+    volumes:
+      - static_volume:/app/static
+    env_file:
+      - ./.env
+    expose:
+      - 8000
+
+  nginx:
+    container_name: nginx.prod
+    restart: always
+    build:
+      context: .docker/nginx
+      dockerfile: Dockerfile.prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - static_volume:/app/static
+      - .docker/nginx/conf.d/:/etc/nginx/conf.d
+    depends_on:
+      - web
+ 
+
+volumes:
+  static_volume:
+  media_volume:
