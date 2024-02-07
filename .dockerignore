@@ -1,0 +1,12 @@
+.idea
+env
+**/.git
+.gitignore
+.vscode
+README.md
+LICENSE
+tmp
+render.yaml
+.gitattributes
+.docker
+dump.rdb

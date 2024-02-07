@@ -10,6 +10,11 @@ settings.ini
 my_settings.py
 data/
 tmp
+prod_DB.py
+.prod.env
+docker-compose.prod.yml
+Dockerfile.prod
+
 # Environments
 .env
 .venv

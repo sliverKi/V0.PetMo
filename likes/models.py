@@ -10,7 +10,7 @@ class PostLike(CommonModel):
     post=models.ForeignKey(
         "posts.Post",
         on_delete=models.CASCADE,
-        related_name="postlike"
+        related_name="postLike"
     )
     unique_together=("user", "post")
 

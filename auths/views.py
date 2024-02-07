@@ -57,7 +57,7 @@ class LogOut(APIView):
       
 class Register(APIView):
     
-    #input data {"email":"moomoo@gmail.com", "username":"eungimoo", "password":"eungi"}
+    #input data {"email":"moomoo@gmail.com", "username":"eungimoo", "password":"eungi123@E"}
     def post(self, request, format=None):#privateUserSerializers
         password=request.data.get("password")
         username=request.data.get("username")

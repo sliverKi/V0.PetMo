@@ -1,17 +1,18 @@
 from django.db import models
-
 from common.models import CommonModel
 
-
-# 해야 할일 -> 다중이미지,
-# 댓글 pageniation 최대 5개까지 보여주기
-# 대댓글 3개
-# 좋아요, 조회수, 댓글수, 북마크 수
 class Post(CommonModel):
-    user=models.ForeignKey(
+    author=models.ForeignKey(
         "users.User",
         on_delete=models.CASCADE,
         related_name="posts"
+    )
+    address=models.ForeignKey(
+        "addresses.Address",
+        on_delete=models.SET_NULL,
+        null=True,
+        unique=False,
+        related_name="post_address"
     )
     content=models.TextField(
         max_length=550,
@@ -19,12 +20,11 @@ class Post(CommonModel):
         null=True,
     )
     boardAnimalTypes=models.ManyToManyField(
-        "pets.Pet",
+        "petCategories.Pet",
         related_name="posts",
-        null=True,
     )
     categoryType=models.ForeignKey(
-        "categories.Category",
+        "boardCategories.Board",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -34,10 +34,14 @@ class Post(CommonModel):
         default=0,
         editable=False,
     )
+    postImage=models.URLField(
+        blank=True, 
+        null=True, 
+    )
 
     @property
     def likeCount(self):
-        return self.postlike.count()
+        return self.postLike.count()
     
     @property
     def commentCount(self):
@@ -48,7 +52,7 @@ class Post(CommonModel):
         return self.bookmarks.count()
     
     def __str__(self):
-        return f"{self.user} - {self.content}"
+        return f"{self.author} - {self.content}"
     
 
 
@@ -64,7 +68,7 @@ class Comment(CommonModel):
         blank=True,
         null=True,
         related_name="post_comments",
-        help_text="댓글이 달린 게시글의 pk"
+        help_text="댓글이 달릴 게시글의 pk"
     )
     content=models.CharField(#댓글 작성
         max_length=150,
@@ -78,7 +82,7 @@ class Comment(CommonModel):
         blank=True,
         null=True,
         related_name="replies",
-        help_text="댓글 인지 대댓글인지 구분 토글, if parent_comment==Null: 댓글, else: 대댓글"
+        help_text="댓글 인지 대댓글인지 구분 토글, if parent_comment==null: 댓글, else: 대댓글"
     )
    
     def __str__(self):

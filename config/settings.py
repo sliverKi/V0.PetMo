@@ -1,17 +1,13 @@
-#06.01
-#vscode에는 현재 베포 서버용 settings가 설정되어 있음
-#github애는 현재 개발 서버용 settings가 설정되어 있음
-import os
+import os, my_DB, prod_DB
 from pathlib import Path
 from datetime import timedelta
 import environ
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-from config.logger import CustomisedJSONFormatter
-import dj_database_url
-
+# import dj_database_url
+from requests_aws4auth import AWS4Auth
+from elasticsearch import Elasticsearch, RequestsHttpConnection
 #로컬서버에서의 cors, csrftoken  설정
 #momo@gmail.com-momo : debug=True
+
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,27 +16,20 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = env("SECRET_KEY")
 
-
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "backend.petmo.monster",
-    "frontend.petmo.monster", 
-    "petmo.monster"
-]
-    
-
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+#prod mode
+# ALLOWED_HOSTS = [
+#     "127.0.0.1",
+#     "localhost",
+#     "backend.petmo.monster",
+#     "frontend.petmo.monster", 
+#     "petmo.monster"
+# ]
+ALLOWED_HOSTS=["*"]
 
 
-
-# CORS_ORIGIN_ALLOW = True
 
 #CORS Setting
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS=True
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000", 
     "http://localhost:3000", 
@@ -57,56 +46,48 @@ CSRF_TRUSTED_ORIGINS = [
     "https://petmo-frontend-4tqxc2n8y-moonyerim2.vercel.app", # : "front-address"
     "https://frontend.petmo.monster"
 ]
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'X-CSRFToken'
-    'x-requested-with',
-    'Set-Cookie',
-]
-AUTH_COOKIE_DOMAIN=".backend.petmo.monster"
-SESSION_COOKIE_DOMAIN=".petmo.monster"
-CSRF_COOKIE_DOMAIN=".petmo.monster"
 
-SESSION_COOKIE_SECURE = False
-# SESSION_COOKIE_HTTPONLY = False
+AUTH_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_HTTPONLY = False
-CSRF_COOKIE_HTTPONLY = False
 
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = False
+
+CCOUNT_PASSWORD_INPUT_RENDER_VALUE = True  
+ACCOUNT_SESSION_REMEMBER = True  
+SESSION_COOKIE_AGE = 3600
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 THIRD_PARTY_APPS=[
+    #JWT
     # "rest_framework_simplejwt.token_blacklist",
     # "dj_rest_auth",
     # "dj_rest_auth.registration",
-    'rest_framework',
     # "rest_framework.authtoken",
+    'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
     'django_seed',
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
     'whitenoise.runserver_nostatic',
     'debug_toolbar',
-    
+    'storages',
+    # 'silk'
 ]
 CUSTOM_APPS=[
+    "auths.apps.AuthsConfig",
+    "addresses.apps.AddressesConfig",
     "users.apps.UsersConfig",
-    "pets.apps.PetsConfig",
-    "categories.apps.CategoriesConfig",
+    "petCategories.apps.petCategoriesConfig",
+    "boardCategories.apps.boardCategoriesConfig",
     "posts.apps.PostsConfig",
     "common.apps.CommonConfig",
-    "images.apps.ImagesConfig",
-    "auths.apps.AuthsConfig",
     "bookmarks.apps.BookmarksConfig",
     "likes.apps.LikesConfig",
+    "search.apps.SearchConfig",
+    "history.apps.HistoryConfig",
 ]
 
 SYSTEM_APPS = [
@@ -117,7 +98,6 @@ SYSTEM_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
 ]
 SITE_ID = 1
 
@@ -137,6 +117,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'silk.middleware.SilkyMiddleware',
+    #'config.search.searchRateLimiterMiddleware',# 검색어 관리 및 검색 횟수 제한 미들웨어 추가 ~> 모든 페이지에 적용되는 문제 발생 ~> 특정 url에만 적용하기 위해 옮김
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -159,25 +141,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DEBUG = 'RENDER' not in os.environ
-# DEBUG=True
+# DEBUG = 'RENDER' not in os.environ
+# DEBUG=env("DEBUG")
+DEBUG=True
 
-if DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    DATABASES = {
-        'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR/ 'db.sqlite3',
-            }
-    }
-else:
-     DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600,
-        )
-                    
-    }
      
 if not DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
@@ -197,6 +164,12 @@ REST_FRAMEWORK={
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
         'PAGE_SIZE': 10,
+}
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        "hosts": "elasticsearch:9200"
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -251,6 +224,7 @@ APP_ID = 'petmo_elk'
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
+DEFAULT_CHARSET = 'utf-8'
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Seoul'
@@ -263,14 +237,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 #by gunicorn
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 
-#elasticssearch
-ELASTICSEARCH_DSL = {
-    'default': {
-        "hosts": "localhost:9200"
-    }
-}
+
 
 MEDIA_ROOT = "uploads"
 
@@ -284,21 +253,101 @@ AUTH_USER_MODEL = "users.User"
 #External API KEY
 KAKAO_API_KEY=env("KAKAO_API_KEY")
 IP_GEOAPI=env("IP_GEOAPI")
-#Cloudflare
+
+#CloudFlare->delete
 CF_TOKEN=env("CF_TOKEN")
 CF_ID=env("CF_ID")
 
-#Sentry -> log monitoring
-if not DEBUG:#개발 환경에서는 작동 안함
+#S3
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+AWS_S3_SECURE_URLS = False       # use http instead of https
+AWS_QUERYSTRING_AUTH = False     # don't add complex authentication-related query parameters for requests
+
+AWS_S3_ACCESS_KEY_ID = env("AWS_S3_ACCESS_KEY_ID")
+AWS_S3_SECRET_ACCESS_KEY = env("AWS_S3_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+
+STATIC_URL = 'https://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
+
+#Redis(elasticCache)
+REDIS_PORT = env("REDIS_PORT")
+# REDIS_HOST = env("REDIS_HOST")
+REDIS_HOST='localhost'
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
     
-    sentry_sdk.init(
-        dsn="https://e7a874aa712847f1a0659474973d022e@o4505280354975744.ingest.sentry.io/4505280371032064",
-        integrations=[
-            DjangoIntegration(),
-        ],
-        traces_sample_rate=1.0,
-        send_default_pii=True
-    )
-#Session
-SESSION_COOKIE_AGE = 3600 # 세션 쿠키는 3600초(1시간) 동안 유지
-#SESSION_EXPIRE_AT_BROWSER_CLOSE = False : 브라우저 닫아도 세션 유지 안함 
+#DB
+
+RDS_PASSWORD=env('RDS_PASSWORD')
+RDS_HOSTNAME=env('RDS_HOSTNAME')
+RDS_POST=env('RDS_PORT')
+
+if DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'app','static')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    DATABASES = my_DB.DATABASES
+
+else:
+    DATABASES = {
+        'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'petmoRDS',
+        'USER': 'admin',
+        'PASSWORD': 'admin1234',
+        'HOST': 'petmo.ck09gu2by087.ap-northeast-2.rds.amazonaws.com',  # 예: 'your-db-instance.rds.amazonaws.com'
+        'PORT': 3306,
+        }
+    }
+    
+#elasticssearch & OpenSearch
+AWS_ACCESS_KEY_ID=env("AWS_S3_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY=env("AWS_S3_SECRET_ACCESS_KEY")
+AWS_REGION=env("AWS_S3_REGION_NAME")
+SERVICE=env("SERVICE")
+
+awsauth = AWS4Auth(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, SERVICE)
+OPENSEARCH_HOST=env("OPENSEARCH_HOST")
+if DEBUG:
+    ELASTICSEARCH_DSL = {
+        'default': {
+            "hosts": "localhost:9200"
+        }
+    }
+else:
+    ELASTICSEARCH_DSL = {
+       'default': {
+        'hosts': OPENSEARCH_HOST,
+        'http_auth': awsauth,
+        'use_ssl': True,
+        'verify_certs': True,
+        'connection_class': RequestsHttpConnection
+        },
+    }
+
+#콘솔창에서 SQL 쿼리 보기
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+    },
+}

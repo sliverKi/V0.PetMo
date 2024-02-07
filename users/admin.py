@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import User, Address
+from .models import User
 
 @admin.register(User)
 
@@ -31,7 +31,7 @@ class MyUserAdmin(UserAdmin):
                     "hasPet",
                     "pets",
                     "first",
-                    # "address",
+                    "address",
                     "profile",
                 )
             },
@@ -61,22 +61,11 @@ class MyUserAdmin(UserAdmin):
         "username",
         "email",
         "hasPet",
-        # "address",
+        "address",
         "is_staff",
     )
     list_display_links=('pk', 'username')
     list_filter = ("username",)
     search_fields = ("email", "username")
     ordering = ("username",)
-
-
-@admin.register(Address)
-class AddressAdmin(admin.ModelAdmin):
-    list_display=('pk', 'user', 'addressName', 'regionDepth1', 'regionDepth2', 'regionDepth3')
-    list_display_links=('pk', 'user', 'addressName', 'regionDepth1', 'regionDepth2', 'regionDepth3')
-
-
-
-    
-
 

@@ -19,16 +19,18 @@ schema_view = get_schema_view(
 
 )
 urlpatterns = [
+    # path('silk/', include('silk.urls')),
     path('admin/', admin.site.urls),
     path("api/v2/users/",include("users.urls")),
-    path("api/v2/pets/", include("pets.urls")),
+    path("api/v2/petCategories/", include("petCategories.urls")),
     path("api/v2/posts/", include("posts.urls")),
-    path("api/v2/categories/", include("categories.urls")),
+    path("api/v2/boardCategories/", include("boardCategories.urls")),
     path("api/v2/auths/", include("auths.urls")),
     path("api/v2/bookmarks/", include("bookmarks.urls")),
     path("api/v2/likes/", include("likes.urls")),
-
-
+    path("api/v2/address/", include("addresses.urls")),
+    path("api/v2/search/", include("search.urls")),
+    path("api/v2/history/", include("history.urls")),
     path(
         "swagger/", 
         schema_view.with_ui("swagger", cache_timeout=0), 

@@ -7,19 +7,20 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-from users.serializers import TinyUserSerializers, SimpleUserSerializer
+from users.serializers import TinyUserSerializers, SimpleUserSerializer, V2_PostAuthorSerializer
 from .models import Post,Comment
-from images.models import Image
-from images.serializers import ImageSerializers
-from categories.models import Category
-from categories.serializers import BoardSerializers
-from pets.models import Pet
-from pets.serializers import PetsSerializers
+
+from boardCategories.models import Board
+from boardCategories.serializers import BoardCategorySerializer
+from petCategories.models import Pet
+from petCategories.serializers import PetCategorySerializer
 from likes.models import PostLike
 from bookmarks.models import Bookmark
-# from search.documents import PostDocument
+from search.documents import PostDocument
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 import sys
-
+from addresses.models import Address
+from addresses.serializers import AddressSerializer
 from django.db import transaction
 sys.setrecursionlimit(100000)
 
@@ -27,21 +28,21 @@ sys.setrecursionlimit(100000)
 
 
 class CommentSerializers(ModelSerializer):
-    user=SimpleUserSerializer(read_only=True)
+    author=SimpleUserSerializer(read_only=True)
     class Meta:
         model=Comment
         fields=( 
             "pk",
             "parent_comment",
             "post",  
-            "user",
+            "author",
             "content",
             "createdDate",
             "updatedDate"
         ) 
 class ReplySerializers(ModelSerializer):
     children=serializers.SerializerMethodField()
-    user=SimpleUserSerializer(read_only=True)
+    author=SimpleUserSerializer(read_only=True)
     
     class Meta:
         model=Comment
@@ -49,7 +50,7 @@ class ReplySerializers(ModelSerializer):
             "id",
             "parent_comment",
             "post",  
-            "user",
+            "author",
             "content",
             "createdDate",
             "updatedDate",
@@ -69,7 +70,7 @@ class ReplySerializers(ModelSerializer):
 
 
 class TinyPostSerializers(ModelSerializer):#좋아요 기능에서 이용
-    Image=ImageSerializers(many=True, read_only=True, required=False)
+    # Image=ImageSerializers(many=True, read_only=True, required=False)
     class Meta:
         model=Post
         fields=(
@@ -81,11 +82,11 @@ class TinyPostSerializers(ModelSerializer):#좋아요 기능에서 이용
             )
 class PostSerializers(ModelSerializer):#댓글 없음.
     print("PostSerilaizers")
-    categoryType=BoardSerializers(many=True, read_only=True)
-    boardAnimalTypes=PetsSerializers(many=True, read_only=True)
-    user=TinyUserSerializers(read_only=True)
-    Image=ImageSerializers(many=True, read_only=True, required=False)
-    likeCheck=serializers.SerializerMethodField()#현재 사용자가 게시글을 좋아요 했는지를 여부를 나타냄
+    categoryType=BoardCategorySerializer(many=True, read_only=True)
+    boardAnimalTypes=PetCategorySerializer(many=True, read_only=True)
+    author=TinyUserSerializers(read_only=True)
+    # Image=ImageSerializers(many=True, read_only=True, required=False)
+    # likeCheck=serializers.SerializerMethodField()#현재 사용자가 게시글을 좋아요 했는지를 여부를 나타냄
     
     class Meta:
         model=Post
@@ -93,18 +94,18 @@ class PostSerializers(ModelSerializer):#댓글 없음.
             "pk",
             "categoryType",
             "boardAnimalTypes",
-            "user",
+            "author",
             "content",
-            "Image",#ImageModel의 related_name 이용 
-            "likeCount",
-            "likeCheck",
+            # "Image",#ImageModel의 related_name 이용 
+            # "likeCount",
+            # "likeCheck",
         )
 
-    def get_likeCheck(self, data):
-        request=self.context.get("request")
-        if request and request.user.is_authenticated:
-            return PostLike.objects.filter(user=request.user, post=data).exists()
-        return False
+    # def get_likeCheck(self, data):
+    #     request=self.context.get("request")
+    #     if request and request.user.is_authenticated:
+    #         return PostLike.objects.filter(user=request.user, post=data).exists()
+    #     return False
 
     
     def create(self, validated_data):  
@@ -113,26 +114,26 @@ class PostSerializers(ModelSerializer):#댓글 없음.
         print("category_data: ", category_data)
         pet_category_data=validated_data.pop("boardAnimalTypes", None)
         print("pet_: ", pet_category_data)
-        image_data = validated_data.pop("Image", None)#값 없으면 None
+        # image_data = validated_data.pop("Image", None)#값 없으면 None
         try:
             with transaction.atomic():
                 post = Post.objects.create(**validated_data)
                 if category_data:
-                    for i in Category.objects.all():
+                    for i in Board.objects.all():
                         print(i.categoryType)
-                    categoryType=Category.objects.filter(categoryType=category_data).first()
+                    categoryType=Board.objects.filter(categoryType=category_data).first()
                     post.categoryType=categoryType
                     post.save()
 
-                if image_data:
-                    if isinstance(image_data, list):
-                        if len(image_data)<=5:
-                            for img in image_data:
-                                Image.objects.create(post=post, img_path=img.get("img_path"))
-                        else:
-                            raise ParseError("이미지는 최대 5장 까지 업로드 할 수 있습니다.") 
-                    else:
-                        raise ParseError("image 잘못된 형식 입니다.")               
+                # if image_data:
+                #     if isinstance(image_data, list):
+                #         if len(image_data)<=5:
+                #             for img in image_data:
+                #                 Image.objects.create(post=post, img_path=img.get("img_path"))
+                #         else:
+                #             raise ParseError("이미지는 최대 5장 까지 업로드 할 수 있습니다.") 
+                #     else:
+                #         raise ParseError("image 잘못된 형식 입니다.")               
                 
                 if pet_category_data:
                     if len(pet_category_data) > 3:
@@ -163,11 +164,15 @@ class PostSerializers(ModelSerializer):#댓글 없음.
     
 
 class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
-    user=SimpleUserSerializer(read_only=True)
-    boardAnimalTypes=PetsSerializers(many=True)
-    categoryType=BoardSerializers()
-    Image=ImageSerializers(many=True, read_only=True, required=False)
-    commentCount=serializers.SerializerMethodField()
+    author=SimpleUserSerializer(read_only=True)
+    boardAnimalTypes=PetCategorySerializer(many=True)
+    categoryType=BoardCategorySerializer()
+    #images=ImageSerializers(many=True, read_only=True, required=False)
+    # images = serializers.SerializerMethodField()
+    #commentCount=serializers.SerializerMethodField()
+    commentCount = serializers.IntegerField(read_only=True)
+    likeCount = serializers.IntegerField(read_only=True)
+    bookmarkCount = serializers.IntegerField(read_only=True)
     createdDate = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
     updatedDate = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
 
@@ -177,21 +182,28 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
             "pk",
             "categoryType",
             "boardAnimalTypes",
-            "user",
+            "author",
             "content",
-            "Image",
+            "postImage",
             "createdDate", 
             "updatedDate",
             "viewCount",#조회수
-            "likeCount",#좋아요 수 
-            "commentCount",#댓글 수 (대댓글 미포함)
-            "bookmarkCount",#북마크 수
+            "likeCount",#좋아요수 
+            "commentCount",#댓글수 (대댓글 미포함)
+            "bookmarkCount",#북마크수
         )
-    def get_images(self, post):
-        images = post.images.all()
-        if images.exists():
-            return ImageSerializers(images.first(), context=self.context).data   
-        return [] 
+    # def get_images(self, post):
+    #     images = post.images.all()
+    #     if images.exists():
+    #         return ImageSerializers(images.first(), context=self.context).data   
+    #     return [] 
+    # def get_images(self, post):
+    # # 이미 로드된 이미지 데이터를 사용
+    #     images = getattr(post, 'images', None)
+    #     if images:
+    #         return ImageSerializers(images, many=True, context=self.context).data
+    #     return []
+
     def get_commentCount(self, obj):
         return obj.commentCount
     
@@ -202,10 +214,10 @@ class PostListSerializers(ModelSerializer):#간략한 정보만을 보여줌
     #     return ret
     
 class PostListSerializer(ModelSerializer):#MY/Post에서 이용(일단 보류.)
-    user=TinyUserSerializers(read_only=True)
-    boardAnimalTypes=PetsSerializers(many=True)
-    categoryType=BoardSerializers()
-    Image=ImageSerializers(many=True, read_only=True, required=False)
+    author=TinyUserSerializers(read_only=True)
+    boardAnimalTypes=PetCategorySerializer(many=True)
+    categoryType=BoardCategorySerializer()
+    # Image=ImageSerializers(many=True, read_only=True, required=False)
     commentCount=serializers.SerializerMethodField()
     class Meta:
         model=Post
@@ -213,7 +225,7 @@ class PostListSerializer(ModelSerializer):#MY/Post에서 이용(일단 보류.)
             "pk",
             "categoryType",
             "boardAnimalTypes",
-            "user",
+            "author",
             "content",
             "Image",
             "createdDate", 
@@ -223,11 +235,11 @@ class PostListSerializer(ModelSerializer):#MY/Post에서 이용(일단 보류.)
             "commentCount",#댓글 수 (대댓글 미포함)
             "bookmarkCount",#북마크 수
         )
-    def get_images(self, post):
-        images = post.images.all()
-        if images.exists():
-            return ImageSerializers(images.first(), context=self.context).data   
-        return [] 
+    # def get_images(self, post):
+    #     images = post.images.all()
+    #     if images.exists():
+    #         return ImageSerializers(images.first(), context=self.context).data   
+    #     return [] 
     def get_commentCount(self, obj):
         return obj.commentCount    
     
@@ -235,10 +247,9 @@ class PostListSerializer(ModelSerializer):#MY/Post에서 이용(일단 보류.)
         
         return self.updatedDate.strftime("%Y-%m-%dT%H:%M:%S") 
 class PostDetailSerializers(ModelSerializer):#image 나열
-    user=SimpleUserSerializer()
-    boardAnimalTypes=PetsSerializers(many=True)
-    categoryType=BoardSerializers()
-    Image=ImageSerializers(many=True, read_only=True, required=False)
+    author=SimpleUserSerializer()
+    boardAnimalTypes=PetCategorySerializer(many=True)
+    categoryType=BoardCategorySerializer()
     likeCheck=serializers.SerializerMethodField()
     commentCount=serializers.SerializerMethodField()
     bookmarkCheck=serializers.SerializerMethodField()
@@ -248,9 +259,8 @@ class PostDetailSerializers(ModelSerializer):#image 나열
             "id",
             "categoryType",
             "boardAnimalTypes",
-            "user", 
+            "author", 
             "content",
-            "Image",
             "createdDate",
             "updatedDate",    
             "viewCount",# 조회수 
@@ -265,7 +275,7 @@ class PostDetailSerializers(ModelSerializer):#image 나열
         request = self.context.get("request")
         if request:
             if request.user.is_authenticated:
-                return PostLike.objects.filter(user=request.user,post__pk=data.pk).exists()
+                return PostLike.objects.filter(author=request.user,post__pk=data.pk).exists()
         return False
     
     def get_commentCount(self, obj):
@@ -310,7 +320,7 @@ class PostDetailSerializers(ModelSerializer):#image 나열
                 raise ValidationError("image 잘못된 형식 입니다.")
                    
         if category_data:
-            category_instance = Category.objects.filter(categoryType=category_data.get("categoryType")).first()
+            category_instance = Board.objects.filter(categoryType=category_data.get("categoryType")).first()
             if not category_instance:
                 raise ParseError({"category": "Invalid category"})
             instance.categoryType = category_instance
@@ -336,27 +346,124 @@ class PostDetailSerializers(ModelSerializer):#image 나열
   
 
 
-#<use elasticsearh>
-# class PostSearchSerializer(DocumentSerializer):
-#     user=SimpleUserSerializer(read_only=True)
-#     boardAnimalTypes=PetsSerializers(many=True)
-#     categoryType=BoardSerializers()
-#     Image=ImageSerializers(many=True, read_only=True, required=False)
 
-#     class Meta:
-#         model=Post
-#         document=PostDocument
-#         fields=(
-#             "id",
-#             "categoryType",
-#             "boardAnimalTypes",
-#             "user",
-#             "content",
-#             "Image",
-#             "createdDate", 
-#             "updatedDate",
-#             "viewCount",
-#             "likeCount",
-#             "commentCount",
-#             "bookmarkCount",
-#         )
+class v2_PostListSerializer(ModelSerializer):
+    author=V2_PostAuthorSerializer()
+    # author = serializers.CharField(source='author.username')#FK에서 필요한 column가져오는 경우 source를 사용함
+    categoryType = serializers.CharField(source='categoryType.boardCategoryType')
+    animal_types = serializers.SerializerMethodField()
+    # boardAnimalTypes=PetCategorySerializer(many=True)
+    regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
+    regionDepth3=  serializers.CharField(source='address.regionDepth3', read_only=True)
+    
+    def get_animal_types(self, obj):
+        return [animalType.animalTypes for animalType in obj.boardAnimalTypes.all()]
+
+    class Meta:
+        model = Post
+        fields = [
+            'id',
+            'author',
+            'regionDepth2',
+            'regionDepth3',
+            'categoryType', 
+            'animal_types',
+            # 'boardAnimalTypes',
+            'content', 
+            'viewCount', 
+            'createdDate', 
+            'updatedDate'
+        ]
+
+
+class v2_noAddressPostListSerializer(ModelSerializer):
+
+    author = serializers.SerializerMethodField()
+    # categoryType = serializers.CharField(source='categoryType.boardCategoryType', read_only=True)
+    categoryType = serializers.CharField(source='categoryType__boardCategoryType', read_only=True)
+
+    # animal_types = serializers.SerializerMethodField()
+    # boardAnimalTypes=PetCategorySerializer(many=True)
+    regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
+    regionDepth3=  serializers.CharField(source='address.regionDepth3', read_only=True)
+    
+    # def get_animal_types(self, obj):
+    #     return [animalType.animalTypes for animalType in obj.boardAnimalTypes.all()]
+    def get_author(self, obj):
+        # obj는 사전 형태의 데이터가 될 것이므로, author 필드에 직접 접근합니다.
+        return {
+            'username': obj['author__username'],
+            'profile': obj['author__profile']
+        }
+    
+    def to_representation(self, instance):
+        # Adjust to_representation to correctly handle nested attributes
+        representation = super(v2_noAddressPostListSerializer, self).to_representation(instance)
+        # Assuming 'instance' is a dictionary with correct keys from cached data
+        # No changes needed if 'categoryType__boardCategoryType' is correctly stored in cached data
+        return representation
+    class Meta:
+        model = Post
+        fields = [
+            'id',
+            'author',
+            'regionDepth2',
+            'regionDepth3',
+            'categoryType', 
+            # 'animal_types',
+            # 'boardAnimalTypes',
+            'content', 
+            'viewCount', 
+            'createdDate', 
+            'updatedDate'
+        ]
+class v3_PostListSerializer(ModelSerializer):
+    author=V2_PostAuthorSerializer()
+    # author = serializers.CharField(source='author.username')#FK에서 필요한 column가져오는 경우 source를 사용함
+    categoryType = serializers.CharField(source='categoryType.boardCategoryType')
+    animal_types = serializers.SerializerMethodField()
+    regionDepth2 = serializers.CharField(source='address.regionDepth2', read_only=True)
+    regionDepth3=  serializers.CharField(source='address.regionDepth2', read_only=True)
+    
+    def get_animal_types(self, obj):
+        return [animalType.animalTypes for animalType in obj.boardAnimalTypes.all()]
+
+    class Meta:
+        model = Post
+        fields = [
+            'id',
+            'author',
+            'regionDepth2',
+            'regionDepth3',
+            'categoryType', 
+            'animal_types', 
+            'content', 
+            'viewCount', 
+            'createdDate', 
+            'updatedDate'
+        ]
+
+
+#<use elasticsearh>
+class PostSearchSerializer(DocumentSerializer):
+    author=SimpleUserSerializer(read_only=True)
+    boardAnimalTypes=PetCategorySerializer(many=True)
+    categoryType=BoardCategorySerializer()
+    # Image=ImageSerializers(many=True, read_only=True, required=False)
+
+    class Meta:
+        model=Post
+        document=PostDocument
+        fields=(
+            "id",
+            "categoryType",
+            "boardAnimalTypes",
+            "author",
+            "content",
+            "createdDate", 
+            "updatedDate",
+            "viewCount",
+            "likeCount",
+            "commentCount",
+            "bookmarkCount",
+        )

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
-
+from django.core.cache import cache
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
@@ -10,16 +10,27 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ParseError, Va
 from rest_framework.pagination import CursorPagination
 
 from .models import Post, Comment
+from petCategories.models import Pet
+
+from users.models import User
+from addresses.models import Address
 from .serializers import (
     PostSerializers,PostListSerializer,
     PostListSerializers, PostDetailSerializers, 
-    CommentSerializers, ReplySerializers
+    CommentSerializers, ReplySerializers,
+    v2_PostListSerializer, v3_PostListSerializer
     )
 from .pagination import PaginaitionHandlerMixin
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from django.db.models import Q
+from django.db.models import Prefetch
+from django.db.models import Count
+from django.db.models import Subquery, CharField, OuterRef, Value
 
+from django.shortcuts import get_object_or_404
+# silk
+# from django.utils.decorators import method_decorator
+# from silk.profiling.profiler import silk_profile
 # #elasticsearch
 # import operator
 # from elasticsearch_dsl import Q as QQ
@@ -120,41 +131,47 @@ class CommentDetail(APIView):# 댓글:  조회 생성, 수정, 삭제(ok)
         comment.delete()
         return Response(status=status.HTTP_200_OK)
 
-
-class Posts(APIView):#게시글 조회
-
-    def get(self, request):
-        animalTypes=["강아지", "고양이", "물고기", "햄스터", "파충류", "토끼", "새", "other"]
-        all_categoryType=[ "자유", "반려질문", "반려고수", "장소후기", "축하해요", "반려구조대"]
-        print("1: Posts")
-        boardAnimalTypes=request.data.get("boardAnimalTypes", animalTypes)
-        categoryType=request.data.get("categoryType", all_categoryType)
-        print("boardAnimalTypes", boardAnimalTypes) #"categoryType", categoryType)
-        
-        filtered_posts = Post.objects.filter(
-            categoryType__categoryType=categoryType,
-            boardAnimalTypes__animalTypes__in=boardAnimalTypes
-        )
-        print("filtered_posts", filtered_posts)
-        serializers=PostListSerializers(filtered_posts, many=True)
-        if not filtered_posts.exists():
-            print("2")
-            return Response([], status=status.HTTP_200_OK)
-        print("4")
-        return Response( serializers.data, status=status.HTTP_200_OK)
-       
+# @method_decorator(silk_profile(name='v1Posts'), name='dispatch')
+class v1Posts(APIView):#게시글 조회~> 3개의 게시글: 31query발생 
     
+    permission_classes=[IsAuthenticated]
+    # @silk_profile(name='View get movie data')
+    def get(self, request):#local에서는 get으로 testing / prod에는 post로 변경할 것.
+        user_address = request.user.address.regionDepth2 if request.user.address else '연수구'
+        boardAnimalTypes=request.data.get("boardAnimalTypes", [])
+        categoryType=request.data.get("categoryType", "")
+        
+        # filter_conditions = {}
+        # if user_address:
+        #     filter_conditions['user__user_address__regionDepth2'] = user_address
+        filter_conditions = {'author__user_address__regionDepth2': user_address}
+        if boardAnimalTypes and "전체" not in boardAnimalTypes:
+            filter_conditions['boardAnimalTypes__animalTypes__in'] = boardAnimalTypes
+        if categoryType and categoryType != "전체":
+            filter_conditions['categoryType__categoryType'] = categoryType
+        # if boardAnimalTypes:
+        #     if "전체" in boardAnimalTypes:
+        #         boardAnimalTypes = animalTypes
+        #     filter_conditions['boardAnimalTypes__animalTypes__in'] = boardAnimalTypes
+        # if categoryType:
+        #     if categoryType == "전체":
+        #         categoryType=all_categoryType
+        #         filter_conditions['categoryType__categoryType__in'] = categoryType
+        #     else:
+        #         filter_conditions['categoryType__categoryType'] = categoryType
+
+        # print("filter_conditions", filter_conditions)
+        filtered_posts = Post.objects.filter(**filter_conditions).distinct()
+        serializers=PostListSerializers(filtered_posts, many=True)
+        return Response(serializers.data, status=status.HTTP_200_OK if filtered_posts.exists() else status.HTTP_204_NO_CONTENT)
     # {  "boardAnimalTypes":["강아지"], 
     #   "categoryType":"자유"
     # }
-    
-
-           
 class makePost(APIView):#image test 해보기 - with front 
     # authentication_classes=[SessionAuthentication]
     # permission_classes=[IsAuthenticated]
   
-    def post(self, request):#게시글 생성
+    def post(self, request):#게시글 생성    
     #input data:{"content":"test post", "boardAnimalTypes":["강아지"], "Image":[], "categoryType":"장소후기"} 
     #input data: {"content":"test post", "boardAnimalTypes":["새"], "Image":[{"img_path":"https://storage.enuri.info/pic_upload/knowbox/mobile_img/202201/2022010406253633544.jpg"}], "categoryType":"장소후기"}  
         serializer=PostSerializers(data=request.data)
@@ -162,10 +179,9 @@ class makePost(APIView):#image test 해보기 - with front
         
         if serializer.is_valid():  
             post=serializer.save(
-                user=request.user,
+                author=request.user,
                 categoryType=request.data.get("categoryType"),
-                boardAnimalTypes=request.data.get("boardAnimalTypes"),
-                Image=request.data.get("Image")
+                boardAnimalTypes=request.data.get("boardAnimalTypes")
             )
             serializer=PostListSerializers(
                 post,
@@ -181,8 +197,9 @@ class PostDetail(APIView):#게시글의 자세한 정보
         except Post.DoesNotExist:
             raise NotFound
 
-    def get(self,request,pk):
+    def get(self,request,pk):#1개의 게시글 조회시 15개의 쿼리 발생(15 queries including 8 similar and 8 duplicates) 
         post=self.get_object(pk)
+        print("post", post)
         post.viewCount+=1 # 조회수 카운트
         post.save()
         
@@ -194,7 +211,7 @@ class PostDetail(APIView):#게시글의 자세한 정보
         
     def put(self, request, pk):
         post=self.get_object(pk=pk)
-        if post.user != request.user:
+        if post.author != request.user:
             raise PermissionDenied
         
         serializer=PostDetailSerializers(
@@ -208,7 +225,7 @@ class PostDetail(APIView):#게시글의 자세한 정보
                 post=serializer.save(
                     category=request.data.get("categoryType"),
                     boardAnimalTypes=request.data.get("boardAnimalTypes"),
-                    Image=request.data.get("Image")
+                    # Image=request.data.get("Image")
                 )
             except serializers.ValidationError as e: 
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -221,7 +238,7 @@ class PostDetail(APIView):#게시글의 자세한 정보
 
     def delete(self, request,pk):#게시글 삭제
         post=self.get_object(pk)    
-        if request.user!=post.user:
+        if request.user!=post.author:
             raise PermissionDenied("게시글 삭제 권한이 없습니다.")
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -352,8 +369,131 @@ def trigger_error(request):
 
 
 
-                
 
 
+##V2: query-Optomized ~> Model 수정           
 
+class v2_Posts(APIView):#쿼리 최적화 적용 
 
+    permission_classes=[IsAuthenticated]
+    def get(self, request):
+        
+        user_address = request.user.address
+       
+        if user_address:
+            cache_key = f'user_address_{request.user.id}'
+            user_regionDepth2 = self._get_user_regionDepth2(cache_key, user_address)
+            posts = Post.objects.filter(address__regionDepth2=user_regionDepth2)
+        else:
+            posts = Post.objects.all().order_by('-createdDate')[:10]
+        
+        posts = self._optimize_query(posts)
+            
+        serializer = v2_PostListSerializer(posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    def _get_user_regionDepth2(self, cache_key, user_address):
+        cache_user_address = cache.get(cache_key)
+        if not cache_user_address:
+            cache.set(cache_key, user_address, timeout=3600)  #Cache  1 hour
+            cache_user_address = user_address
+        return cache_user_address.regionDepth2 if cache_user_address else user_address.regionDepth2
+
+    def _optimize_query(self, posts):
+        return posts.select_related(
+            'author', 'categoryType', 'address'
+        ).prefetch_related(
+            'boardAnimalTypes'
+        ).only(
+            'author__username', 'author__profile', 'content', 'categoryType', 'address__regionDepth2',
+            'address__regionDepth3', 'viewCount', 'createdDate', 'updatedDate'
+        )
+    
+    def post(self, request): # cacheX: 7_query / cache O: 6_query
+        
+        user_address = cache.get(f'user_address_{request.user.id}')
+        if not user_address:
+            user_address = request.user.address
+            if user_address:
+                cache.set(f'user_address_{request.user.id}', user_address, timeout=3600)  # 1시간 동안 캐시
+
+        if user_address:
+            user_regionDepth2 = user_address.regionDepth2
+            posts = Post.objects.filter(address__regionDepth2=user_regionDepth2)
+        else:
+            # 주소가 없는 경우, 빈 결과 반환
+            posts = Post.objects.none()
+       
+        # 필요한 필드만 선택하여 쿼리 최적화
+        posts = posts.select_related('author', 'categoryType', 'address').prefetch_related('boardAnimalTypes')
+    
+        categoryType = request.data.get('categoryType')
+        animal_types = request.data.get('boardAnimalTypes')
+       
+        if categoryType:
+            posts = posts.filter(categoryType__boardCategoryType=categoryType)
+        if animal_types:
+            posts = posts.filter(boardAnimalTypes__animalTypes=animal_types)
+
+        serializer = v2_PostListSerializer(posts, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    # def post(self,request):
+        
+    #     posts=Post.objects.select_related(
+    #         'author', 'categoryType', 'address'
+    #     ).prefetch_related(
+    #         'boardAnimalTypes'
+    #     )
+
+    #     categoryType = request.data.get('categoryType')
+    #     animal_types = request.data.get('boardAnimalTypes')
+       
+    #     if categoryType:
+    #         posts = posts.filter(categoryType__boardCategoryType=categoryType)
+    #     if animal_types:
+    #         posts = posts.filter(boardAnimalTypes__animalTypes=animal_types)
+
+    #     serializer = v2_PostListSerializer(posts, many=True)
+
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
+
+        
+class v3_Posts(APIView):
+
+    permission_classes=[IsAuthenticated]
+
+    def get(self, request):
+
+        user_address = cache.get(f'user_address_{request.user.id}')
+        if not user_address:
+            user_address = request.user.user_address
+            if user_address:
+                cache.set(f'user_address_{request.user.id}', user_address, timeout=3600)  # 1시간 동안 캐시
+
+        if user_address:
+            user_regionDepth = user_address.regionDepth2
+        
+        address_regionDepth = Subquery(
+            Address.objects.filter(user_id=OuterRef('author')).values('regionDepth2')[:1].values('regionDepth3')[:1], 
+            output_field=CharField()
+        )
+        
+        # user_regionDepth = request.user.user_address.first().regionDepth2
+        posts = Post.objects.filter(
+            address__regionDepth2=user_regionDepth
+            ).select_related(
+                'author', 'categoryType', 'address'
+            ).prefetch_related(
+                'boardAnimalTypes'
+            ).annotate(
+                regionDepth2=address_regionDepth#user_address를 동적으로 전달
+            ).only(
+                'author__username', 'author__profile',
+                'content', 'categoryType', 'address__regionDepth2','address__regionDepth3','viewCount','createdDate', 'updatedDate' 
+            )
+        serializer = v3_PostListSerializer(posts, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
